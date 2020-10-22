@@ -16,7 +16,7 @@ def setWebhook():
 
 def sendMessage(message: str):
     reqUrl = BASE_URL + TG_BOT_TOKEN + "/sendMessage"
-    params = f"?chat_id={TG_USER_ID}&message={message}"
+    params = f"?chat_id={TG_USER_ID}&text={message}"
     print(reqUrl + params)
     try:
         res = requests.post(reqUrl + params)
