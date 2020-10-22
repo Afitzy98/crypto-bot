@@ -14,9 +14,15 @@ tg.setWebhook(WEBHOOK_URL)
 def handleRequest():
     
     req = request.get_json()
+
+    print(req)
+
     message = req["message"]
 
+    print(message)
+
     if message and message["from"]["id"] == TG_USER_ID and message["text"]:
+        print("Message received")
         handleMessage(req.message.text)
 
     return 'ok'
