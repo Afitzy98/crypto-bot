@@ -4,6 +4,7 @@ from .telegram import sendMessage
 
 sched = Scheduler()
 
+# using a dict as a switch statement for functions
 switcher = {
     "start": lambda: sched.start(),
     "stop": lambda: sched.shutdown()
@@ -15,5 +16,6 @@ def handleMessage(message: str):
 def handleRequest(req: dict):
     message = req["message"]
 
+    # if the update is a message and the message was from my telegram account proceed
     if message and message["from"]["id"] == TG_USER_ID:
-        return handleMessage(message["text"])
+        return handleMessage(lower(message["text"]))
