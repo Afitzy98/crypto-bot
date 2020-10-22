@@ -21,7 +21,3 @@ def sendMessage(message: str):
         res = requests.post(reqUrl + params)
     except:
         print("ERROR.FAILED_TO_SEND_MESSAGE")
-
-
-
-
