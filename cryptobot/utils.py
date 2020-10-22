@@ -10,5 +10,3 @@ def handleRequest(req: dict):
 
     if message and message["from"]["id"] == TG_USER_ID and message["text"]:
         handleMessage(message["text"])
-
-    return 'ok'

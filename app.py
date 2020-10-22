@@ -14,8 +14,9 @@ def webhookEndpoint():
     try:
         req = request.get_json()
         handleRequest(req)
+        return "ok"
     except:
-        print("ERROR.WHILE_HANDLING_REQUEST")
+        return "ERROR.WHILE_HANDLING_REQUEST"
 
 if __name__ == '__main__':
     app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=80)
