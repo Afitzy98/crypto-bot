@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 import requests
 from settings import TG_BOT_TOKEN, WEBHOOK_URL, TG_USER_ID
@@ -22,26 +21,3 @@ def sendMessage(message: str):
         res = requests.post(reqUrl + params)
     except:
         print("ERROR.FAILED_TO_SEND_MESSAGE")
-
-
-
-
-=======
-import requests
-import json
-
-class Telegram:
-    def __init__(self, botToken: str):
-        self.botToken = botToken
-        self.reqUrl = "https://api.telegram.org/bot"
-
-    def setWebhook(self, webhookUrl: str):
-        reqUrl = self.reqUrl + self.botToken + "/setWebhook"
-        setUrl = webhookUrl + f"/{self.botToken}"
-        try:
-            requests.post(f"{reqUrl}?url={setUrl}")
-        except:
-            print("ERROR.FAILED_TO_SET_WEBHOOK")
-
-
->>>>>>> 6e814306ae6d7ca036bc72a3668e210b98842350
