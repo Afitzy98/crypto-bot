@@ -1,11 +1,16 @@
 from settings import TG_USER_ID
+from .scheduler import Scheduler
 from .telegram import sendMessage
 
+sched = Scheduler()
+
+switcher = {
+    "start": lambda: sched.start(),
+    "stop": lambda: sched.shutdown()
+}
+
 def handleMessage(message: str):
-    # reply in chat with same message
-    sendMessage(message)
-    
-    return message
+    return switcher.get(message, lambda: sendMessage("Sorry, I didn't understand that."))()
     
 def handleRequest(req: dict):
     message = req["message"]
