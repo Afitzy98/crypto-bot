@@ -11,11 +11,11 @@ switcher = {
 }
 
 def handleMessage(message: str):
-    return switcher.get(message, lambda: sendMessage("Sorry, I didn't understand that."))()
+    return switcher.get(message.lower(), lambda: sendMessage("Sorry, I didn't understand that."))()
     
 def handleRequest(req: dict):
     message = req["message"]
 
     # if the update is a message and the message was from my telegram account proceed
     if message and message["from"]["id"] == TG_USER_ID:
-        return handleMessage(lower(message["text"]))
+        return handleMessage(message["text"])

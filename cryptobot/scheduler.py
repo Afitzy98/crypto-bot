@@ -8,10 +8,10 @@ class Scheduler(Thread):
         super(Scheduler, self).__init__()
         self.sched = BlockingScheduler()
 
-    # def add_hourly_job():
+    # def add_hourly_job(self):
     #     self.sched.add_job(lambda: sendMessage("Running"), "cron", minutes="1-59")
 
-    # def add_job_on_hours(task: Callable, hours: str):
+    # def add_job_on_hours(self, task: Callable, hours: str):
     #     self.sched.add_job(task, "cron", hour=hours)
 
     def run(self):
