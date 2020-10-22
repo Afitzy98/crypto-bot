@@ -7,3 +7,4 @@ import os
 APP_SETTINGS = os.getenv("APP_SETTINGS")
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+TG_USER_ID = os.getenv("TG_USER_ID")
