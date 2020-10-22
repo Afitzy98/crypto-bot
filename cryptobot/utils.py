@@ -1,5 +1,5 @@
 from settings import TG_USER_ID
-from telegram import sendMessage
+from .telegram import sendMessage
 
 def handleMessage(message: str):
     # reply in chat with same message

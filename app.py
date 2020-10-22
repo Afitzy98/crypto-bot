@@ -1,7 +1,7 @@
 from cryptobot.telegram import setWebhook
 from cryptobot.utils import handleRequest
 from flask import Flask, request, jsonify
-from settings import APP_SETTINGS
+from settings import APP_SETTINGS, TG_BOT_TOKEN
 
 
 app = Flask(__name__)
