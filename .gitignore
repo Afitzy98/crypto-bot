@@ -141,3 +141,5 @@ cython_debug/
 # Custom 
 cert.pem
 key.pem
+activate
+updateRequirements
