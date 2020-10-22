@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
-from settings import APP_SETTINGS, TG_BOT_TOKEN, WEBHOOK_URL, TG_USER_ID
 from cryptobot.telegram import Telegram
 from cryptobot.utils import handleMessage
+from flask import Flask, request, jsonify
+from settings import APP_SETTINGS, TG_BOT_TOKEN, WEBHOOK_URL, TG_USER_ID
+
 
 app = Flask(__name__)
 app.config.from_object(APP_SETTINGS)
