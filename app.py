@@ -1,19 +1,20 @@
+from cryptobot.scheduler import Scheduler
 from cryptobot.telegram import setWebhook
 from cryptobot.utils import handleRequest
 from flask import Flask, request, jsonify
 from settings import APP_SETTINGS, TG_BOT_TOKEN
 
-
 app = Flask(__name__)
 app.config.from_object(APP_SETTINGS)
 
 setWebhook()
+sched = Scheduler()
 
 @app.route('/{}'.format(TG_BOT_TOKEN), methods=['POST'])
 def webhookEndpoint():
     try:
         req = request.get_json()
-        handleRequest(req)
+        handleRequest(req, sched)
         return "ok"
     except:
         return "ERROR.WHILE_HANDLING_REQUEST"

@@ -2,15 +2,13 @@ from settings import TG_USER_ID
 from .scheduler import Scheduler
 from .telegram import sendMessage
 
-sched = Scheduler()
 
-# using a dict as a switch statement for functions
-switcher = {
-    "start": lambda: sched.start(),
-    "stop": lambda: sched.shutdown()
-}
-
-def handleMessage(message: str):
+def handleMessage(message: str, sched: Scheduler):
+    # using a dict as a switch statement for functions
+    switcher = {
+        "start": lambda: sched.start(),
+        "stop": lambda: sched.shutdown()
+    }
     return switcher.get(message.lower(), lambda: sendMessage("Sorry, I didn't understand that."))()
     
 def handleRequest(req: dict):
