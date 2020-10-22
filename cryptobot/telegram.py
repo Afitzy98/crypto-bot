@@ -8,7 +8,7 @@ class Telegram:
 
     def setWebhook(self, webhookUrl: str):
         reqUrl = self.reqUrl + self.botToken + "/setWebhook"
-        setUrl = webhookUrl + "/webhook"
+        setUrl = webhookUrl + f"/{self.botToken}"
         try:
             requests.post(f"{reqUrl}?url={setUrl}")
         except:
