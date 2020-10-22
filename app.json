@@ -1,0 +1,9 @@
+{
+    "environments": {
+      "test": {
+        "scripts": {
+          "test": "coverage run -m unittest tests/*"
+        }
+      }
+    }
+  }
