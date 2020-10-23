@@ -1,8 +1,8 @@
 import unittest
-
-from cryptobot.utils import handleRequest
-from settings import TG_USER_ID
 from unittest import mock
+
+from cryptobot.utils import handle_request
+from settings import TG_USER_ID
 
 MESSAGE1 = "start"
 MESSAGE2 = "test"
@@ -19,17 +19,17 @@ class TestUtils(unittest.TestCase):
         "apscheduler.schedulers.background.BackgroundScheduler.start", autospec=True
     )
     def test_handle_valid_message_request(self, mock_sched_start):
-        handleRequest(REQ1)
+        handle_request(REQ1)
         mock_sched_start.assert_called_once()
 
     @mock.patch("requests.post", autospec=True)
     def test_handle_invalid_message_request(self, mock_req_post):
-        handleRequest(REQ2)
+        handle_request(REQ2)
         mock_req_post.assert_called_once()
 
     @mock.patch("requests.post", autospec=True)
     def test_handle_invalid_user_id_request(self, mock_req_post):
-        handleRequest(REQ3)
+        handle_request(REQ3)
         mock_req_post.assert_not_called()
 
 

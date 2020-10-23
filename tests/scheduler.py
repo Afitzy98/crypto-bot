@@ -1,10 +1,7 @@
 import unittest
-
-from cryptobot.scheduler import start, shutdown
-from settings import TG_USER_ID
 from unittest import mock
 
-MESSAGE = "TEST"
+from cryptobot.scheduler import start, shutdown
 
 @mock.patch("requests.post", autospec=True)
 class TestScheduler(unittest.TestCase):
