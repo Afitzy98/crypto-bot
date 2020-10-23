@@ -4,7 +4,7 @@ from .data import get_data
 from .telegram import send_message
 
 def apply_strategy(symbol):
-  period = "7 days ago"
+  period = "5 days ago"
   window = 96
   entryZscore = 0.01
   lag = 1
