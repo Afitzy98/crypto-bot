@@ -9,6 +9,10 @@ app.config.from_object(APP_SETTINGS)
 
 set_webhook()
 
+@app.route("/", methods=["GET"])
+def keep_alive():
+    return "ok"
+
 @app.route('/{}'.format(TG_BOT_TOKEN), methods=['POST'])
 def webhook_endpoint():
     try:
