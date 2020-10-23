@@ -143,3 +143,4 @@ cert.pem
 key.pem
 activate
 updateRequirements
+coverage_html_report/
