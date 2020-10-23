@@ -1,18 +1,19 @@
-from cryptobot.telegram import setWebhook
-from cryptobot.utils import handleRequest
 from flask import Flask, request, jsonify
 from settings import APP_SETTINGS, TG_BOT_TOKEN
+
+from cryptobot.telegram import set_webhook
+from cryptobot.utils import handle_request
 
 app = Flask(__name__)
 app.config.from_object(APP_SETTINGS)
 
-setWebhook()
+set_webhook()
 
 @app.route('/{}'.format(TG_BOT_TOKEN), methods=['POST'])
-def webhookEndpoint():
+def webhook_endpoint():
     try:
         req = request.get_json()
-        handleRequest(req)
+        handle_request(req)
         return "ok"
     except:
         return "ERROR.WHILE_HANDLING_REQUEST"

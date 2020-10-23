@@ -1,13 +1,16 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from .telegram import sendMessage
+
+from .strategy import apply_strategy
+from .telegram import send_message
 
 sched = BackgroundScheduler()
 
 def start():
-    sched.add_job(sendMessage, "cron", minute="1-59", kwargs={"message":"Running..."})
+    sched.add_job(apply_strategy, "cron", minute="0", kwargs={"symbol": "LINKUSDT"})
     sched.start()
-    sendMessage("Scheduler has started")
+    send_message("Scheduler has started")
+
 
 def shutdown():
     sched.shutdown(wait=False)
-    sendMessage("Scheduler has shutdown")
+    send_message("Scheduler has shutdown")
