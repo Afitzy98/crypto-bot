@@ -8,12 +8,11 @@ class TestScheduler(unittest.TestCase):
 
     @mock.patch("apscheduler.schedulers.background.BackgroundScheduler.start", autospec=True)
     @mock.patch("apscheduler.schedulers.background.BackgroundScheduler.add_job", autospec=True)
-    def test_start_scheduler(self, mock_req_post, mock_start_sched, mock_add_job):
+    def test_start_scheduler(self, mock_add_job, mock_start_sched, mock_req_post):
         start()
         mock_req_post.assert_called_once()
         mock_add_job.assert_called_once()
         mock_start_sched.assert_called_once()
-
 
 
     @mock.patch("apscheduler.schedulers.background.BackgroundScheduler.shutdown", autospec=True)

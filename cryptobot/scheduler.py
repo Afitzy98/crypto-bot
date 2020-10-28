@@ -6,7 +6,7 @@ from .telegram import send_message
 sched = BackgroundScheduler()
 
 def start():
-    sched.add_job(apply_strategy, "cron", minute="1", kwargs={"symbol": "XTZUSDT"})
+    sched.add_job(apply_strategy, "cron", minute="0", second="30", kwargs={"symbol": "ONTUSDT"})
     sched.start()
     send_message("Scheduler has started")
 

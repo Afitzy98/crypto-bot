@@ -1,4 +1,6 @@
 import os
+from settings import APP_SECRET_KEY
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -6,6 +8,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
+    SECRET_KEY = APP_SECRET_KEY
 
 class ProductionConfig(Config):
     DEBUG = False
