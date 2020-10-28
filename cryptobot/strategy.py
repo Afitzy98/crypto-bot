@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .data import get_data
+from .binance import get_data
 from .telegram import send_message
 
 def apply_strategy(symbol):
@@ -30,7 +30,7 @@ def apply_strategy(symbol):
       side = "short"
 
 
-  send_message(f"\n💱\t{symbol} \n🕛\tLatest Timestamp: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}")
+  send_message(f"\n💱\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}")
 
   return side
 
