@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .binance import get_data
+from .binance import get_data, handle_decision
 from .telegram import send_message
 
 def apply_strategy(symbol):
@@ -9,7 +9,7 @@ def apply_strategy(symbol):
   entryZscore = 0.01
   lag = 1
 
-  asset = get_data(period, symbol)
+  asset = get_data(period, symbol + "USDT")
 
   dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
@@ -32,5 +32,5 @@ def apply_strategy(symbol):
 
   send_message(f"\n💱\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}")
 
-  return side
+  handle_decision(side, symbol)
 
