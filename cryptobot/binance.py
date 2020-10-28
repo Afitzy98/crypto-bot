@@ -1,6 +1,5 @@
 from binance.client import Client
 from binance.enums import *
-from binance.websockets import BinanceSocketManager
 import json 
 import numpy as np
 import pandas as pd
@@ -12,18 +11,6 @@ from .telegram import send_message
 
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
-socket_manager = BinanceSocketManager(client)
-
-def borrow_coin(symbol: str, freeUSDT: float, freeCoin: float):
-  ticker = get_ticker(symbol + "USDT")
-
-  amount = 0
-  if freeUSDT > 0:
-    amount = freeUSDT * ticker["bidPrice"]
-  else:
-    amount = freeCoin
-
-  return client.create_margin_loan(asset=symbol, amount=amount)
 
 def get_data(period: str, symbol: str):
   try:
@@ -72,6 +59,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
         timeInForce=TIME_IN_FORCE_GTC,
+        sideEffectType="AUTO_REPAY",
         quantity=round(quantity, 5))
     
       send_message(f"Order has just been placed for {round(quantity, 2)} {symbol}!")
@@ -103,7 +91,7 @@ def handle_exit_positions(symbol: str, equity: dict):
     handle_buy_order(symbol, borrowedCoin + interest, app.config.get('DEVELOPMENT'))
   
   if freeCoin > 0:
-    handle_sell_order(symbol, freeCoin, app.config.get('DEVELOPMENT'))
+    handle_sell_order(symbol, freeCoin, app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
 
 
 def handle_long(symbol: str, equity: dict):
@@ -113,7 +101,7 @@ def handle_long(symbol: str, equity: dict):
     qty = freeUSDT / bidPrice
     return handle_buy_order(symbol, qty, app.config.get('DEVELOPMENT'))
 
-def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool):
+def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
   order = None
   try:
     if DEVELOPMENT == True:
@@ -131,6 +119,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
         timeInForce=TIME_IN_FORCE_GTC,
+        sideEffectType=sideEffect,
         quantity=round(quantity, 5))
       
       send_message(f"Order has just been placed to sell {round(quantity, 2)} {symbol}!")
@@ -145,24 +134,16 @@ def handle_short(symbol: str, equity: dict):
   if not borrowedCoin > 0:
     freeUSDT = np.float(equity["usdt"]['free'])
     freeCoin = np.float(equity["coin"]['free'])
-    borrow_coin(symbol, freeUSDT, freeCoin)
-    info = get_info_for_symbol(symbol)
-    freeCoin = np.float(equity["coin"]['free'])
-    return handle_sell_order(symbol, freeCoin, app.config.get('DEVELOPMENT'))
 
-def process_message(msg):
-  if msg['e'] == 'error':
-    socket_manager.close()
-    start_binance_order_socket()
-  else:
-      if msg['e'] == 'executionReport' and msg["S"] == "BUY" and msg["x"] == "TRADE":
-        equity = get_info_for_symbol(msg["s"][:3])
-        borrowed = np.float(equity["coin"]["borrowed"])
-        if borrowed > 0:
-          interest = np.float(equity["coin"]["interest"])
-          client.repay_margin_loan(asset=msg["s"][:3], amount=borrowed + interest)
+    ticker = get_ticker(symbol + "USDT")
 
-def start_binance_order_socket():
-  socket_manager.start_user_socket(process_message)  
-  socket_manager.start()
+    amount = 0
+    if freeUSDT > 0:
+      amount = freeUSDT * ticker["bidPrice"]
+    else:
+      amount = freeCoin
+
+    return handle_sell_order(symbol, amount, app.config.get('DEVELOPMENT'), "MARGIN_BUY")
+
+
 

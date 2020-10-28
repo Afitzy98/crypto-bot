@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from cryptobot.binance import get_data, handle_decision, process_message, borrow_coin, handle_exit_positions, handle_sell_order, handle_buy_order, get_info_for_symbol, handle_short, handle_long
+from cryptobot.binance import get_data, handle_decision, handle_exit_positions, handle_sell_order, handle_buy_order, get_info_for_symbol, handle_short, handle_long
 
 from cryptobot import app
 
@@ -88,9 +88,8 @@ class TestData(unittest.TestCase):
 
     @mock.patch("binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT)
     @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=BTC_TICKER)
-    @mock.patch("binance.client.Client.create_margin_loan", autospec=True)
     @mock.patch("binance.client.Client.create_test_order", return_value={})
-    def test_short(self, mock_create_order, mock_create_loan, mock_get_ticker, mock_get_account, mock_req_post):
+    def test_short(self, mock_create_order, mock_get_ticker, mock_get_account, mock_req_post):
         res = handle_decision("short", "BTC")
         mock_get_account.assert_called()
         mock_get_ticker.assert_called_once()
@@ -106,47 +105,6 @@ class TestData(unittest.TestCase):
         mock_create_order.assert_called()
         mock_req_post.assert_called()
 
-    @mock.patch("binance.websockets.BinanceSocketManager.start_user_socket", autospec=True)
-    @mock.patch("binance.websockets.BinanceSocketManager.start", autospec=True)
-    @mock.patch("binance.websockets.BinanceSocketManager.close", autospec=True)
-    def test_process_message_error(self, mock_close_socket, mock_start_socket_manager, mock_start_socket, mock_req_post):
-        process_message({'e': 'error'})
-        mock_close_socket.assert_called_once()
-        mock_start_socket_manager.assert_called_once()
-        mock_start_socket.assert_called_once()
-        mock_req_post.assert_not_called()
-
-    @mock.patch("binance.client.Client.get_margin_account", return_value=EXIT_POS_ACCOUNT)
-    @mock.patch("binance.client.Client.repay_margin_loan", autospec=True)
-    def test_process_message_trade_update_and_owe(self, mock_repay_loan, mock_get_account, mock_req_post):
-        process_message({'e': 'executionReport', "S": "BUY", "x": "TRADE", "s": "BTCUSDT"})
-        mock_get_account.assert_called_once()
-        mock_repay_loan.assert_called_once()
-        mock_req_post.assert_not_called()
-
-    @mock.patch("binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT)
-    @mock.patch("binance.client.Client.repay_margin_loan", autospec=True)
-    def test_process_message_trade_update_dont_owe(self, mock_repay_loan, mock_get_account, mock_req_post):
-        process_message({'e': 'executionReport', "S": "BUY", "x": "TRADE", "s": "BTCUSDT"})
-        mock_get_account.assert_called_once()
-        mock_repay_loan.assert_not_called()
-        mock_req_post.assert_not_called()
-
-    @mock.patch("binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT)
-    @mock.patch("binance.client.Client.repay_margin_loan", autospec=True)
-    def test_process_message_not_trade_update(self, mock_repay_loan, mock_get_account, mock_req_post):
-        process_message({'e': 'executionReport', "S": "BUY", "x": "NEW", "s": "BTCUSDT"})
-        mock_get_account.assert_not_called()
-        mock_repay_loan.assert_not_called()
-        mock_req_post.assert_not_called()
-
-    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=BTC_TICKER)
-    @mock.patch("binance.client.Client.create_margin_loan", autospec=True)
-    def test_borrow_coin(self, mock_loan, mock_get_ticker, mock_req_post):
-        borrow_coin("BTC", 0.0, 0.1)
-        mock_loan.assert_called_once()
-        mock_get_ticker.assert_called_once()
-        mock_req_post.assert_not_called()
     
     @mock.patch("binance.client.Client.create_test_order", return_value={})
     def test_handle_exit_position(self, mock_create_order, mock_req_post):
@@ -165,13 +123,13 @@ class TestData(unittest.TestCase):
 
     @mock.patch("binance.client.Client.create_margin_order", side_effect=Exception)
     def test_sell_order_failing(self, mock_create_order, mock_req_post):
-        handle_sell_order("BTC", 0.1, False)
+        handle_sell_order("BTC", 0.1, False, "MARGIN_BUY")
         mock_create_order.assert_called_once()
         mock_req_post.assert_called_once()
 
     @mock.patch("binance.client.Client.create_margin_order", return_value={}) 
     def test_real_sell_order(self, mock_create_order, mock_req_post):
-        res = handle_sell_order("BTC", 0.1, False)
+        res = handle_sell_order("BTC", 0.1, False, "MARGIN_BUY")
         mock_req_post.assert_called_once()
         mock_create_order.assert_called_once()
         self.assertEqual({}, res)
@@ -188,6 +146,15 @@ class TestData(unittest.TestCase):
         get_info_for_symbol("BTC")
         mock_get_account.assert_called_once()
         mock_req_post.assert_called_once()
+
+    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=BTC_TICKER)
+    @mock.patch("binance.client.Client.create_test_order", return_value={})
+    def test_handle_short_whith_coin_in_account(self, mock_create_order, mock_ticker, mock_req_post):
+        handle_short("BTC", {"coin":{"borrowed":"0", "free":"0.1"}, "usdt":{"free":"0"}})
+        mock_req_post.assert_called_once()
+        mock_ticker.assert_called_once()
+        mock_create_order.assert_called_once()
+
 
     def test_handle_short_while_shorting(self, mock_req_post):
         handle_short("BTC", {"coin":{"borrowed":"0.1"}})
