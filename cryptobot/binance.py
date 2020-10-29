@@ -58,7 +58,6 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
-        timeInForce=TIME_IN_FORCE_GTC,
         sideEffectType="AUTO_REPAY",
         quantity=quantity)
     
@@ -116,8 +115,8 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
-        timeInForce=TIME_IN_FORCE_GTC,
         sideEffectType=sideEffect,
+        #marginBuyBorrowAmount= ** set to amount bebing borrowed if type margin sell
         quantity=quantity)
       
       send_message(f"Order has just been placed to sell {quantity} {symbol}!")
