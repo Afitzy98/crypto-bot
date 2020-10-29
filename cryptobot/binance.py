@@ -42,19 +42,20 @@ def get_ticker(symbol: str):
   return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
-  order = None
   try:
     if DEVELOPMENT == True:
-      order = client.create_test_order(
+      qty = round(quantity, 6)
+      print(qty)
+      client.create_test_order(
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
-        quantity=round(quantity, 8))
+        quantity=qty)
       
       send_message(f"Test order has just been placed for {round(quantity, 2)} {symbol}!")
 
     else:
-      order = client.create_margin_order(
+      client.create_margin_order(
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
@@ -67,11 +68,9 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
   except Exception as e:
       send_message(e)
 
-  return order
-
 def handle_decision(long: bool, short: bool, symbol: str):
   equity = get_info_for_symbol(symbol)
-  
+  print(equity)
   if long:
     handle_long(symbol, equity)
   
@@ -100,22 +99,23 @@ def handle_long(symbol: str, equity: dict):
     ticker = get_ticker(symbol)
     askPrice = float(ticker["askPrice"])
     qty = freeUSDT / askPrice
-    return handle_buy_order(symbol, qty, app.config.get('DEVELOPMENT'))
+    handle_buy_order(symbol, qty, app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
-  order = None
   try:
     if DEVELOPMENT == True:
-      order = client.create_test_order(
+      qty = round(quantity, 8)
+      print(qty)
+      client.create_test_order(
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
-        quantity=round(quantity, 8))
+        quantity=qty)
 
       send_message(f"Test order has just been placed to sell {round(quantity, 2)} {symbol}!")
       
     else:
-      order = client.create_margin_order(
+      client.create_margin_order(
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
@@ -128,7 +128,6 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
   except Exception as e:
     send_message(e)
 
-  return order
 
 def handle_short(symbol: str, equity: dict):
   borrowedCoin = np.float(equity["coin"]['borrowed'])
