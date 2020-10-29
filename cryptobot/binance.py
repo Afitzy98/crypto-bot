@@ -48,7 +48,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
-        quantity=132)
+        quantity=quantity)
       
       send_message(f"Test order has just been placed for {round(quantity, 2)} {symbol}!")
 
@@ -85,10 +85,10 @@ def handle_exit_positions(symbol: str, equity: dict):
 
   if borrowedCoin > 0:
     interest = np.float(equity["coin"]["interest"])
-    handle_buy_order(symbol, round(borrowedCoin + interest, 4), app.config.get('DEVELOPMENT'))
+    handle_buy_order(symbol, round(borrowedCoin + interest, 8), app.config.get('DEVELOPMENT'))
   
   if freeCoin > 0:
-    handle_sell_order(symbol, round(freeCoin, 4), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
+    handle_sell_order(symbol, round(freeCoin, 8), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
 
 
 def handle_long(symbol: str, equity: dict):
@@ -96,8 +96,7 @@ def handle_long(symbol: str, equity: dict):
   if freeUSDT > 0:
     ticker = get_ticker(symbol)
     askPrice = float(ticker["askPrice"])
-    qty = round(freeUSDT / askPrice, 4)
-    print(qty)
+    qty = round(freeUSDT / askPrice, 8)
     handle_buy_order(symbol, qty , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
@@ -107,7 +106,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
-        quantity=132.0)
+        quantity=quantity)
 
       send_message(f"Test order has just been placed to sell {round(quantity, 2)} {symbol}!")
       
@@ -134,13 +133,13 @@ def handle_short(symbol: str, equity: dict):
 
     ticker = get_ticker(symbol)
 
-    amount = 0
+    qty = 0
     if freeUSDT > 0:
-      amount = freeUSDT / float(ticker["askPrice"])
+      qty = freeUSDT / float(ticker["askPrice"])
     else:
-      amount = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
+      qty = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
 
-    return handle_sell_order(symbol, round(amount,4), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
+    handle_sell_order(symbol, round(qty, 8), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
 
 
 
