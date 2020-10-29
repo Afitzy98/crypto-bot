@@ -4,7 +4,6 @@ from .binance import get_data, handle_decision
 from .telegram import send_message
 
 def apply_strategy(symbol, asset):
-  period = "5 days ago"
   window = 96
   entryZscore = 0.01
   lag = 1
@@ -27,6 +26,7 @@ def apply_strategy(symbol, asset):
 
 
 def hourly_task(symbol: str):
+    period = "5 hours ago"
     asset = get_data(period, symbol + "USDT")
     [longPos, shortPos] = applyStrategy(symbol, asset)
     handle_decision(longPos, shortPos, symbol)
