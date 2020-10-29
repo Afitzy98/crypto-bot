@@ -66,13 +66,13 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
   except Exception as e:
       send_message(e)
 
-def handle_decision(long: bool, short: bool, symbol: str):
+def handle_decision(longPos: bool, shortPos: bool, symbol: str):
   equity = get_info_for_symbol(symbol)
-  print(equity)
-  if long:
+
+  if longPos:
     handle_long(symbol, equity)
   
-  if short:
+  if shortPos:
     handle_short(symbol, equity)
 
   else:
@@ -85,10 +85,10 @@ def handle_exit_positions(symbol: str, equity: dict):
 
   if borrowedCoin > 0:
     interest = np.float(equity["coin"]["interest"])
-    handle_buy_order(symbol, round(borrowedCoin + interest, 8), app.config.get('DEVELOPMENT'))
+    handle_buy_order(symbol, round(borrowedCoin + interest, 4), app.config.get('DEVELOPMENT'))
   
   if freeCoin > 0:
-    handle_sell_order(symbol, round(freeCoin, 8), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
+    handle_sell_order(symbol, round(freeCoin, 4), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
 
 
 def handle_long(symbol: str, equity: dict):
@@ -96,7 +96,7 @@ def handle_long(symbol: str, equity: dict):
   if freeUSDT > 0:
     ticker = get_ticker(symbol)
     askPrice = float(ticker["askPrice"])
-    qty = round(freeUSDT / askPrice, 8)
+    qty = round(freeUSDT / askPrice, 4)
     handle_buy_order(symbol, qty , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
@@ -139,7 +139,7 @@ def handle_short(symbol: str, equity: dict):
     else:
       qty = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
 
-    handle_sell_order(symbol, round(qty, 8), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
+    handle_sell_order(symbol, round(qty, 4), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
 
 
 
