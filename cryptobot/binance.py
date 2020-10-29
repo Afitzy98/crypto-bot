@@ -97,8 +97,9 @@ def handle_exit_positions(symbol: str, equity: dict):
 def handle_long(symbol: str, equity: dict):
   freeUSDT = np.float(equity["usdt"]['free'])
   if freeUSDT > 0:
-    bidPrice = get_ticker(symbol)["bidPrice"]
-    qty = freeUSDT / bidPrice
+    ticker = get_ticker(symbol)
+    askPrice = float(ticker["askPrice"])
+    qty = freeUSDT / askPrice
     return handle_buy_order(symbol, qty, app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
@@ -139,7 +140,7 @@ def handle_short(symbol: str, equity: dict):
 
     amount = 0
     if freeUSDT > 0:
-      amount = freeUSDT * ticker["bidPrice"]
+      amount = freeUSDT / float(ticker["askPrice"])
     else:
       amount = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
 
