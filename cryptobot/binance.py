@@ -98,7 +98,7 @@ def handle_long(symbol: str, equity: dict):
     askPrice = float(ticker["askPrice"])
     qty = round(freeUSDT / askPrice, 4)
     print(qty)
-    handle_buy_order(symbol, , app.config.get('DEVELOPMENT'))
+    handle_buy_order(symbol, qty , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
   try:
