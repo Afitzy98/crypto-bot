@@ -3,13 +3,11 @@ from datetime import datetime
 from .binance import get_data, handle_decision
 from .telegram import send_message
 
-def apply_strategy(symbol):
+def apply_strategy(symbol, asset):
   period = "5 days ago"
   window = 96
   entryZscore = 0.01
   lag = 1
-
-  asset = get_data(period, symbol + "USDT")
 
   dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
@@ -22,15 +20,13 @@ def apply_strategy(symbol):
   longPos = currentOpen >= asset["High"].iloc[-(1+lag)] * (1 + entryZscore * asset["Std Ret"].iloc[-1])
   shortPos = currentOpen <= asset["Low"].iloc[-(1+lag)] * (1 - entryZscore * asset["Std Ret"].iloc[-1])
 
-  side = "none"
-
-  if longPos:
-      side = "long"
-  if shortPos:
-      side = "short"
-
-
   send_message(f"\n💱\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}")
+  
+  return [longPos, shortPos]
 
-  handle_decision(side, symbol)
 
+
+def hourly_task(symbol):
+    asset = get_data(period, symbol + "USDT")
+    [longPos, shortPos] = applyStrategy(symbol, asset)
+    handle_decision(longPos, shortPos, symbol)

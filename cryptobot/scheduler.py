@@ -1,12 +1,12 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from .strategy import apply_strategy
+from .strategy import hourly_task
 from .telegram import send_message
 
 sched = BackgroundScheduler()
 
 def start():
-    sched.add_job(apply_strategy, "cron", minute="0", second="30", kwargs={"symbol": "XTZ"})
+    sched.add_job(hourly_task, "cron", minute="0", second="30", kwargs={"symbol": "XTZ"})
     sched.start()
     send_message("Scheduler has started")
 

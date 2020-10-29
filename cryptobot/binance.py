@@ -69,17 +69,17 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
 
   return order
 
-def handle_decision(side: str, symbol: str):
+def handle_decision(long: bool, short: bool, symbol: str):
   equity = get_info_for_symbol(symbol)
-
-  if side == "long":
-    return handle_long(symbol, equity)
   
-  if side == "short":
-    return handle_short(symbol, equity)
+  if long:
+    handle_long(symbol, equity)
+  
+  if short:
+    handle_short(symbol, equity)
 
   else:
-    return handle_exit_positions(symbol, equity)
+    handle_exit_positions(symbol, equity)
 
 
 def handle_exit_positions(symbol: str, equity: dict):
@@ -141,7 +141,7 @@ def handle_short(symbol: str, equity: dict):
     if freeUSDT > 0:
       amount = freeUSDT * ticker["bidPrice"]
     else:
-      amount = freeCoin
+      amount = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
 
     return handle_sell_order(symbol, amount, app.config.get('DEVELOPMENT'), "MARGIN_BUY")
 
