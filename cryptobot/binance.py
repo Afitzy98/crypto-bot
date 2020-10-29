@@ -42,6 +42,7 @@ def get_ticker(symbol: str):
   return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
+  print("Order Quantity: {}".format(quantity))
   try:
     if DEVELOPMENT == True:
       client.create_test_order(
@@ -50,7 +51,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         type=ORDER_TYPE_MARKET,
         quantity=quantity)
       
-      send_message(f"Test order has just been placed for {round(quantity, 2)} {symbol}!")
+      send_message(f"Test order has just been placed for {quantity} {symbol}!")
 
     else:
       client.create_margin_order(
@@ -61,7 +62,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         sideEffectType="AUTO_REPAY",
         quantity=quantity)
     
-      send_message(f"Order has just been placed for {round(quantity, 2)} {symbol}!")
+      send_message(f"Order has just been placed for {quantity} {symbol}!")
 
   except Exception as e:
       send_message(e)
@@ -85,10 +86,10 @@ def handle_exit_positions(symbol: str, equity: dict):
 
   if borrowedCoin > 0:
     interest = np.float(equity["coin"]["interest"])
-    handle_buy_order(symbol, round(borrowedCoin + interest, 4), app.config.get('DEVELOPMENT'))
+    handle_buy_order(symbol, round(borrowedCoin + interest, 2), app.config.get('DEVELOPMENT'))
   
   if freeCoin > 0:
-    handle_sell_order(symbol, round(freeCoin, 4), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
+    handle_sell_order(symbol, round(freeCoin, 2), app.config.get('DEVELOPMENT'), "NO_SIDE_EFFECT")
 
 
 def handle_long(symbol: str, equity: dict):
@@ -96,10 +97,11 @@ def handle_long(symbol: str, equity: dict):
   if freeUSDT > 0:
     ticker = get_ticker(symbol)
     askPrice = float(ticker["askPrice"])
-    qty = round(freeUSDT / askPrice, 4)
+    qty = round(freeUSDT / askPrice, 2)
     handle_buy_order(symbol, qty , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
+  print("Order Quantity: {}".format(quantity))
   try:
     if DEVELOPMENT == True:
       client.create_test_order(
@@ -108,7 +110,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         type=ORDER_TYPE_MARKET,
         quantity=quantity)
 
-      send_message(f"Test order has just been placed to sell {round(quantity, 2)} {symbol}!")
+      send_message(f"Test order has just been placed to sell {quantity} {symbol}!")
       
     else:
       client.create_margin_order(
@@ -119,7 +121,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         sideEffectType=sideEffect,
         quantity=quantity)
       
-      send_message(f"Order has just been placed to sell {round(quantity, 2)} {symbol}!")
+      send_message(f"Order has just been placed to sell {quantity} {symbol}!")
 
   except Exception as e:
     send_message(e)
@@ -139,7 +141,7 @@ def handle_short(symbol: str, equity: dict):
     else:
       qty = freeCoin # * 2 ?? account for selling both coin and shorted coin? do you have to make two
 
-    handle_sell_order(symbol, round(qty, 4), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
+    handle_sell_order(symbol, round(qty, 2), app.config.get('DEVELOPMENT'), "MARGIN_BUY")
 
 
 
