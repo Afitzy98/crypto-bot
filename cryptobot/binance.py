@@ -135,7 +135,7 @@ def handle_short(symbol: str, equity: dict):
     freeUSDT = np.float(equity["usdt"]['free'])
     freeCoin = np.float(equity["coin"]['free'])
 
-    ticker = get_ticker(symbol + "USDT")
+    ticker = get_ticker(symbol)
 
     amount = 0
     if freeUSDT > 0:
