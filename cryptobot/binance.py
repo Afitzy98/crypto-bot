@@ -14,7 +14,7 @@ client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
 def get_data(period: str, symbol: str):
   try:
-    data = np.array(client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)).astype(float)
+    data = np.array(client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, period)).astype(float)
 
     return pd.DataFrame(data[:,1:5],index=data[:,0], columns=["Open", "High", "Low", "Close"])
 
@@ -49,7 +49,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
-        quantity=round(quantity, 5))
+        quantity=round(quantity, 8))
       
       send_message(f"Test order has just been placed for {round(quantity, 2)} {symbol}!")
 
@@ -60,7 +60,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         type=ORDER_TYPE_MARKET,
         timeInForce=TIME_IN_FORCE_GTC,
         sideEffectType="AUTO_REPAY",
-        quantity=round(quantity, 5))
+        quantity=round(quantity, 8))
     
       send_message(f"Order has just been placed for {round(quantity, 2)} {symbol}!")
 
@@ -109,7 +109,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
-        quantity=round(quantity, 5))
+        quantity=round(quantity, 8))
 
       send_message(f"Test order has just been placed to sell {round(quantity, 2)} {symbol}!")
       
@@ -120,7 +120,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         type=ORDER_TYPE_MARKET,
         timeInForce=TIME_IN_FORCE_GTC,
         sideEffectType=sideEffect,
-        quantity=round(quantity, 5))
+        quantity=round(quantity, 8))
       
       send_message(f"Order has just been placed to sell {round(quantity, 2)} {symbol}!")
 

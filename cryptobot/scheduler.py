@@ -5,8 +5,11 @@ from .telegram import send_message
 
 sched = BackgroundScheduler()
 
+def add_job(func, kwargs: dict):
+    sched.add_job(func, "cron", minute="0-59", kwargs=kwargs)
+
 def start():
-    sched.add_job(hourly_task, "cron", minute="0", second="30", kwargs={"symbol": "XTZ"})
+    add_job(hourly_task, kwargs={"symbol": "XTZ"})
     sched.start()
     send_message("Scheduler has started")
 
