@@ -14,7 +14,7 @@ client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
 def get_data(period: str, symbol: str):
   try:
-    data = np.array(client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, period)).astype(float)
+    data = np.array(client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)).astype(float)
 
     return pd.DataFrame(data[:,1:5],index=data[:,0], columns=["Open", "High", "Low", "Close"])
 
@@ -101,7 +101,6 @@ def handle_long(symbol: str, equity: dict):
     handle_buy_order(symbol, qty , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
-  print("Order Quantity: {}".format(quantity))
   try:
     if DEVELOPMENT == True:
       client.create_test_order(
