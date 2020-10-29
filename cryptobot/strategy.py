@@ -26,7 +26,7 @@ def apply_strategy(symbol, asset):
 
 
 
-def hourly_task(symbol):
+def hourly_task(symbol: str):
     asset = get_data(period, symbol + "USDT")
     [longPos, shortPos] = applyStrategy(symbol, asset)
     handle_decision(longPos, shortPos, symbol)
