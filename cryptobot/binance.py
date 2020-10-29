@@ -48,7 +48,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
         symbol=symbol + "USDT",
         side=SIDE_BUY,
         type=ORDER_TYPE_MARKET,
-        quantity=quantity)
+        quantity=132)
       
       send_message(f"Test order has just been placed for {round(quantity, 2)} {symbol}!")
 
@@ -96,8 +96,9 @@ def handle_long(symbol: str, equity: dict):
   if freeUSDT > 0:
     ticker = get_ticker(symbol)
     askPrice = float(ticker["askPrice"])
-    qty = freeUSDT / askPrice
-    handle_buy_order(symbol, round(qty, 4), app.config.get('DEVELOPMENT'))
+    qty = round(freeUSDT / askPrice, 4)
+    print(qty)
+    handle_buy_order(symbol, , app.config.get('DEVELOPMENT'))
 
 def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffect: str):
   try:
@@ -106,7 +107,7 @@ def handle_sell_order(symbol: str, quantity: float, DEVELOPMENT: bool, sideEffec
         symbol=symbol + "USDT",
         side=SIDE_SELL,
         type=ORDER_TYPE_MARKET,
-        quantity=quantity)
+        quantity=132.0)
 
       send_message(f"Test order has just been placed to sell {round(quantity, 2)} {symbol}!")
       
