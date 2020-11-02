@@ -9,8 +9,6 @@ from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 from cryptobot import app
 from .telegram import send_message
 
-# from .state import state, setState
-
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
 state = {"prevPosition": {"shortPos": False, "longPos": False}}
