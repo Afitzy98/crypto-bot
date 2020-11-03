@@ -109,7 +109,7 @@ def handle_decision(longPos: bool, shortPos: bool, symbol: str):
     if longPos:
         handle_long(symbol, equity, prevPosition)
 
-    if shortPos:
+    elif shortPos:
         handle_short(symbol, equity, prevPosition)
 
     else:
