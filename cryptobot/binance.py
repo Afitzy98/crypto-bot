@@ -7,6 +7,7 @@ import pandas as pd
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
 from cryptobot import app
+from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT
 from .telegram import send_message
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
@@ -90,7 +91,7 @@ def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
                 symbol=symbol + "USDT",
                 side=SIDE_BUY,
                 type=ORDER_TYPE_MARKET,
-                sideEffectType="AUTO_REPAY",
+                sideEffectType=AUTO_REPAY,
                 quantity=quantity,
             )
 
@@ -133,7 +134,7 @@ def handle_exit_positions(symbol: str, equity: dict, prevPosition: dict):
         [qty, isValid] = get_order_qty(symbol, freeCoin)
         if isValid:
             handle_sell_order(
-                symbol, qty, app.config.get("DEVELOPMENT"), "NO_SIDE_EFFECT"
+                symbol, qty, app.config.get("DEVELOPMENT"), NO_SIDE_EFFECT, 0
             )
 
 
@@ -147,12 +148,35 @@ def handle_long(symbol: str, equity: dict, prevPosition: dict):
         handle_buy_order(symbol, qty, app.config.get("DEVELOPMENT"))
 
 
+def handle_margin_borrow_sell(
+    symbol: str, quantity: float, marginBuyBorrowAmount: float = 0
+):
+    client.create_margin_order(
+        symbol=symbol + "USDT",
+        side=SIDE_SELL,
+        type=ORDER_TYPE_MARKET,
+        sideEffectType=MARGIN_BUY,
+        marginBuyBorrowAmount=marginBuyBorrowAmount,
+        quantity=quantity,
+    )
+
+
+def handle_normal_sell(symbol: str, quantity: float):
+    client.create_margin_order(
+        symbol=symbol + "USDT",
+        side=SIDE_SELL,
+        type=ORDER_TYPE_MARKET,
+        sideEffectType=NO_SIDE_EFFECT,
+        quantity=quantity,
+    )
+
+
 def handle_sell_order(
     symbol: str,
     quantity: float,
     DEVELOPMENT: bool,
     sideEffect: str,
-    marginBuyBorrowAmount: float,
+    marginBuyBorrowAmount: float = 0,
 ):
     try:
         if DEVELOPMENT == True:
@@ -168,14 +192,11 @@ def handle_sell_order(
             )
 
         else:
-            client.create_margin_order(
-                symbol=symbol + "USDT",
-                side=SIDE_SELL,
-                type=ORDER_TYPE_MARKET,
-                sideEffectType=sideEffect,
-                marginBuyBorrowAmount=marginBuyBorrowAmount,
-                quantity=quantity,
-            )
+            if sideEffect == MARGIN_BUY:
+                handle_margin_borrow_sell(symbol, quantity, marginBuyBorrowAmount)
+
+            else:
+                handle_normal_sell(symbol, quantity)
 
             send_message(f"Order has just been placed to sell {quantity} {symbol}!")
 
@@ -197,7 +218,7 @@ def handle_short(symbol: str, equity: dict, prevPosition: dict):
                     symbol,
                     qty,
                     app.config.get("DEVELOPMENT"),
-                    "MARGIN_BUY",
+                    MARGIN_BUY,
                     marginBuyBorrowAmount,
                 )
 
@@ -208,5 +229,5 @@ def handle_short(symbol: str, equity: dict, prevPosition: dict):
 
             if isValid:
                 handle_sell_order(
-                    symbol, qty, app.config.get("DEVELOPMENT"), "MARGIN_BUY", qty
+                    symbol, qty, app.config.get("DEVELOPMENT"), MARGIN_BUY, qty
                 )
