@@ -7,7 +7,7 @@ from .telegram import send_message
 def apply_strategy(symbol, asset):
     window = 96
     entryZscore = 0.01
-    lag = 1
+    lag = 2
 
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
@@ -17,7 +17,7 @@ def apply_strategy(symbol, asset):
 
     asset["Std Ret"] = asset["Returns"].rolling(window).std().shift(1)
 
-    currentOpen = asset["Close"].iloc[-1]
+    currentOpen = asset["Open"].iloc[-1]
 
     longPos = currentOpen >= asset["High"].iloc[-(1 + lag)] * (
         1 + entryZscore * asset["Std Ret"].iloc[-1]
