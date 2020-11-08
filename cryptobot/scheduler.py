@@ -7,7 +7,7 @@ sched = BackgroundScheduler()
 
 
 def add_job(func, kwargs: dict):
-    sched.add_job(func, "cron", minute="0", second="30", kwargs=kwargs)
+    sched.add_job(func, "cron", minute="0", second="15", kwargs=kwargs)
 
 
 def start():

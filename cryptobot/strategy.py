@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from .binance import get_data, handle_decision
-from .telegram import send_message
+from cryptobot.binance import get_data, handle_decision
+from cryptobot.telegram import send_message
 
 
 def apply_strategy(symbol, asset):
@@ -14,7 +14,6 @@ def apply_strategy(symbol, asset):
     asset["Returns"] = (asset["Close"] - asset["Close"].shift(1)) / asset[
         "Close"
     ].shift(1)
-
     asset["Std Ret"] = asset["Returns"].rolling(window).std().shift(1)
 
     currentOpen = asset["Open"].iloc[-1]
