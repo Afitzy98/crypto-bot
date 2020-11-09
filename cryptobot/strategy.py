@@ -26,7 +26,7 @@ def apply_strategy(symbol, asset):
     )
 
     send_message(
-        f"\n💱\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}"
+        f"\🆕\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}"
     )
 
     return [longPos, shortPos]
