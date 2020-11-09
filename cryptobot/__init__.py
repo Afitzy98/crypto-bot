@@ -1,5 +1,6 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+
+# from flask_sqlalchemy import SQLAlchemy
 from settings import APP_SETTINGS, DB_URI
 
 app = Flask(__name__)
