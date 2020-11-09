@@ -2,7 +2,9 @@ from flask import Flask
 
 # from flask_sqlalchemy import SQLAlchemy
 from settings import APP_SETTINGS, DB_URI
+from cryptobot.scheduler import start_scheduler
 
+start_scheduler()
 app = Flask(__name__)
 app.config.from_object(APP_SETTINGS)
 # app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
