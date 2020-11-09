@@ -48,8 +48,3 @@ def remove_job(name: str):
 def start_scheduler():
     scheduler.start()
     send_message("📅 Scheduler has started")
-
-
-def shutdown_scheduler():
-    scheduler.shutdown()
-    send_message("🛑 Scheduler has shutdown")
