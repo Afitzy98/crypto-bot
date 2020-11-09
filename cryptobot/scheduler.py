@@ -6,7 +6,6 @@ from settings import DB_URI
 
 from .telegram import send_message
 
-
 jobstores = {
     "default": SQLAlchemyJobStore(url=DB_URI),
 }
@@ -43,8 +42,3 @@ def remove_job(name: str):
         if job.name == name:
             scheduler.remove_job(job.id)
             send_message(f"🛑 Stopped trading with {name}USDT")
-
-
-def start_scheduler():
-    scheduler.start()
-    send_message("📅 Scheduler has started")
