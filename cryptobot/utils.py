@@ -1,47 +1,27 @@
 from settings import TG_USER_ID
 
-from .scheduler import start, shutdown
+from .scheduler import add_job, remove_job, get_jobs
+from .strategy import hourly_task
 from .telegram import send_message
-from .binance import setState
 
-switcher = {"start": lambda: start(), "stop": lambda: shutdown(), "state": setState}
-
-
-def str_to_bool(string: str):
-    return string.lower() in ("yes", "true", "t", "1", "True")
+switcher = {"start": add_job, "stop": remove_job, "list": get_jobs}
 
 
 def handle_message(message: str):
-    global switcher
 
-    keys = switcher.keys()
+    parts = message.split()
 
-    for key in keys:
-        if key in message.lower():
-            func = switcher.get(
-                key,
-                lambda: send_message(
-                    "Sorry I didn't understand that, you said: {}".format(message)
-                ),
-            )
-            if key == "state":
-                state = message.lower().split()
+    func = switcher.get(
+        parts[0].lower(),
+        lambda: send_message(f"Sorry I didn't understand that, you said: {message}"),
+    )
 
-                shortPos = str_to_bool(state[1])
-                longPos = str_to_bool(state[2])
-
-                func(
-                    {
-                        "prevPosition": {
-                            "shortPos": shortPos,
-                            "longPos": longPos,
-                        }
-                    }
-                )
-                send_message(f"Previous Position - short: {shortPos} long: {longPos}")
-
-            else:
-                func()
+    if func.__code__.co_argcount == 0:
+        func()
+    elif func.__code__.co_argcount == 1:
+        func(parts[1])
+    else:
+        func(hourly_task, kwargs={"symbol": parts[1]})
 
 
 def handle_request(req: dict):

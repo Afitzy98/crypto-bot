@@ -1,21 +1,55 @@
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from .strategy import hourly_task
+from settings import DB_URI
+
 from .telegram import send_message
 
-sched = BackgroundScheduler()
+
+jobstores = {
+    "default": SQLAlchemyJobStore(url=DB_URI),
+}
+executors = {"default": ThreadPoolExecutor(20), "processpool": ProcessPoolExecutor(5)}
+job_defaults = {"coalesce": False, "max_instances": 3}
+
+scheduler = BackgroundScheduler(
+    jobstores=jobstores, executors=executors, job_defaults=job_defaults
+)
 
 
-def add_job(func, kwargs: dict):
-    sched.add_job(func, "cron", minute="0", second="30", kwargs=kwargs)
+def add_job(func, kwargs):
+    name = kwargs["symbol"]
+    job = scheduler.add_job(
+        func, "cron", name=name, minute="0", second="15", kwargs=kwargs
+    )
+    send_message(f"✅ Started trading with {name}USDT")
 
 
-def start():
-    add_job(hourly_task, kwargs={"symbol": "XTZ"})
-    sched.start()
-    send_message("Scheduler has started")
+def get_jobs():
+    jobs = scheduler.get_jobs()
+    if len(jobs) > 0:
+        out = "💸 Currently trading with:"
+        for job in jobs:
+            out += f"\n\u2022 {job.name}USDT"
+        send_message(out)
+    else:
+        send_message("0️⃣ There is currently nothing being traded.")
 
 
-def shutdown():
-    sched.shutdown(wait=False)
-    send_message("Scheduler has shutdown")
+def remove_job(name: str):
+    jobs = scheduler.get_jobs()
+    for job in jobs:
+        if job.name == name:
+            scheduler.remove_job(job.id)
+            send_message(f"🛑 Stopped trading with {name}USDT")
+
+
+def start_scheduler():
+    scheduler.start()
+    send_message("📅 Scheduler has started")
+
+
+def shutdown_scheduler():
+    scheduler.shutdown()
+    send_message("🛑 Scheduler has shutdown")

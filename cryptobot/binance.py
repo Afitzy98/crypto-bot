@@ -4,6 +4,7 @@ import json
 import math
 import numpy as np
 import pandas as pd
+
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
 from cryptobot import app
@@ -35,19 +36,11 @@ def get_data(period: str, symbol: str):
 
 
 def get_order_qty(symbol: str, coins_available: float):
-    ticks = {}
-    minQty = 0
+    ticks = ""
     for filt in client.get_symbol_info(symbol + "USDT")["filters"]:
         if filt["filterType"] == "LOT_SIZE":
-            ticks[symbol] = filt["stepSize"].find("1") - 2
-            minQty = float(filt["minQty"])
-            break
-
-    order_quantity = math.floor(coins_available * 10 ** ticks[symbol]) / float(
-        10 ** ticks[symbol]
-    )
-
-    return [order_quantity, order_quantity > minQty]
+            ticks = filt["stepSize"].find("1") - 2
+            return math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
 
 
 def get_info_for_symbol(symbol: str):
@@ -73,161 +66,113 @@ def get_ticker(symbol: str):
     return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 
-def handle_buy_order(symbol: str, quantity: float, DEVELOPMENT: bool):
-    print("Order Quantity: {}".format(quantity))
-    try:
-        if DEVELOPMENT == True:
-            client.create_test_order(
-                symbol=symbol + "USDT",
-                side=SIDE_BUY,
-                type=ORDER_TYPE_MARKET,
-                quantity=quantity,
-            )
-
-            send_message(f"Test order has just been placed for {quantity} {symbol}!")
-
-        else:
-            client.create_margin_order(
-                symbol=symbol + "USDT",
-                side=SIDE_BUY,
-                type=ORDER_TYPE_MARKET,
-                sideEffectType=AUTO_REPAY,
-                quantity=quantity,
-            )
-
-            send_message(f"Order has just been placed for {quantity} {symbol}!")
-
-    except Exception as e:
-        send_message(e)
-
-
 def handle_decision(longPos: bool, shortPos: bool, symbol: str):
     prevPosition = state["prevPosition"]
-    equity = get_info_for_symbol(symbol)
-    print(
-        f"Previous Position - short: {prevPosition['shortPos']} long: {prevPosition['longPos']}"
-    )
     if longPos:
-        handle_long(symbol, equity, prevPosition)
+        handle_long(symbol, prevPosition)
 
     elif shortPos:
-        handle_short(symbol, equity, prevPosition)
+        handle_short(symbol, prevPosition)
 
     else:
-        handle_exit_positions(symbol, equity, prevPosition)
+        handle_exit_positions(symbol, prevPosition)
 
     setState({"prevPosition": {"shortPos": shortPos, "longPos": longPos}})
 
 
-def handle_exit_positions(symbol: str, equity: dict, prevPosition: dict):
-
+def handle_exit_positions(symbol: str, prevPosition: dict):
     if prevPosition["shortPos"]:
+        equity = get_info_for_symbol(symbol)
         borrowedCoin = np.float(equity["coin"]["borrowed"])
         interest = np.float(equity["coin"]["interest"])
 
-        [qty, isValid] = get_order_qty(symbol, borrowedCoin + interest)
+        qtyOwed = get_order_qty(symbol, borrowedCoin + interest)
 
-        handle_buy_order(symbol, qty, app.config.get("DEVELOPMENT"))
+        handle_order(
+            symbol, SIDE_BUY, AUTO_REPAY, qtyOwed, 0, app.config.get("DEVELOPMENT")
+        )
 
     if prevPosition["longPos"]:
+        equity = get_info_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
-        [qty, isValid] = get_order_qty(symbol, freeCoin)
-        if isValid:
-            handle_sell_order(
-                symbol, qty, app.config.get("DEVELOPMENT"), NO_SIDE_EFFECT, 0
-            )
+        qty = get_order_qty(symbol, freeCoin)
+        handle_order(
+            symbol, SIDE_SELL, NO_SIDE_EFFECT, qty, 0, app.config.get("DEVELOPMENT")
+        )
 
 
-def handle_long(symbol: str, equity: dict, prevPosition: dict):
-    freeUSDT = np.float(equity["usdt"]["free"])
-    ticker = get_ticker(symbol)
-    askPrice = float(ticker["askPrice"])
-    [qty, isValid] = get_order_qty(symbol, freeUSDT / askPrice)
-
-    if not prevPosition["longPos"] and isValid:
-        handle_buy_order(symbol, qty, app.config.get("DEVELOPMENT"))
-
-
-def handle_margin_borrow_sell(
-    symbol: str, quantity: float, marginBuyBorrowAmount: float = 0
-):
-    client.create_margin_order(
-        symbol=symbol + "USDT",
-        side=SIDE_SELL,
-        type=ORDER_TYPE_MARKET,
-        sideEffectType=MARGIN_BUY,
-        marginBuyBorrowAmount=marginBuyBorrowAmount,
-        quantity=quantity,
-    )
+def handle_long(symbol: str, prevPosition: dict):
+    if not prevPosition["longPos"]:
+        equity = get_info_for_symbol(symbol)
+        freeUSDT = np.float(equity["usdt"]["free"])
+        ticker = get_ticker(symbol)
+        askPrice = float(ticker["askPrice"])
+        qty = get_order_qty(symbol, freeUSDT / askPrice)
+        handle_order(
+            symbol, SIDE_BUY, AUTO_REPAY, qty, 0, app.config.get("DEVELOPMENT")
+        )
 
 
-def handle_normal_sell(symbol: str, quantity: float):
-    client.create_margin_order(
-        symbol=symbol + "USDT",
-        side=SIDE_SELL,
-        type=ORDER_TYPE_MARKET,
-        sideEffectType=NO_SIDE_EFFECT,
-        quantity=quantity,
-    )
+def handle_short(symbol: str, prevPosition: dict):
+    if prevPosition["longPos"]:
+        equity = get_info_for_symbol(symbol)
+        freeCoin = np.float(equity["coin"]["free"])
+        qty = get_order_qty(symbol, freeCoin * 2)
+        marginBuyBorrowAmount = get_order_qty(symbol, qty / 2)
+        handle_order(
+            symbol,
+            SIDE_SELL,
+            MARGIN_BUY,
+            qty,
+            marginBuyBorrowAmount,
+            app.config.get("DEVELOPMENT"),
+        )
+
+    elif not prevPosition["shortPos"]:
+        equity = get_info_for_symbol(symbol)
+        freeUSDT = np.float(equity["usdt"]["free"])
+        ticker = get_ticker(symbol)
+        qty = get_order_qty(symbol, freeUSDT / float(ticker["askPrice"]))
+
+        handle_order(
+            symbol,
+            SIDE_SELL,
+            MARGIN_BUY,
+            qty,
+            qty,
+            app.config.get("DEVELOPMENT"),
+        )
 
 
-def handle_sell_order(
+def handle_order(
     symbol: str,
+    side: str,
+    sideEffectType: str,
     quantity: float,
+    marginBuyBorrowAmount: float,
     DEVELOPMENT: bool,
-    sideEffect: str,
-    marginBuyBorrowAmount: float = 0,
 ):
     try:
-        if DEVELOPMENT == True:
-            client.create_test_order(
-                symbol=symbol + "USDT",
-                side=SIDE_SELL,
-                type=ORDER_TYPE_MARKET,
-                quantity=quantity,
-            )
+        kwargs = {
+            "symbol": symbol,
+            "side": side,
+            "type": ORDER_TYPE_MARKET,
+            "quantity": quantity,
+        }
 
-            send_message(
-                f"Test order has just been placed to sell {quantity} {symbol}!"
-            )
+        if marginBuyBorrowAmount > 0 and not DEVELOPMENT:
+            kwargs["marginBuyBorrowAmount"] = marginBuyBorrowAmount
 
+        if DEVELOPMENT:
+            client.create_test_order(**kwargs)
         else:
-            if sideEffect == MARGIN_BUY:
-                handle_margin_borrow_sell(symbol, quantity, marginBuyBorrowAmount)
+            kwargs["sideEffectType"] = sideEffectType
+            client.create_margin_order(**kwargs)
 
-            else:
-                handle_normal_sell(symbol, quantity)
-
-            send_message(f"Order has just been placed to sell {quantity} {symbol}!")
+        send_message(
+            f"Order has just been placed for {quantity} {symbol}! Side: {side}"
+        )
 
     except Exception as e:
+        print(e)
         send_message(e)
-
-
-def handle_short(symbol: str, equity: dict, prevPosition: dict):
-
-    if not prevPosition["shortPos"]:
-
-        if prevPosition["longPos"]:
-            freeCoin = np.float(equity["coin"]["free"])
-            [qty, isValid] = get_order_qty(symbol, freeCoin * 2)
-            [marginBuyBorrowAmount, isBorrowValid] = get_order_qty(symbol, qty / 2)
-
-            if isValid and isBorrowValid:
-                handle_sell_order(
-                    symbol,
-                    qty,
-                    app.config.get("DEVELOPMENT"),
-                    MARGIN_BUY,
-                    marginBuyBorrowAmount,
-                )
-
-        else:
-            freeUSDT = np.float(equity["usdt"]["free"])
-            ticker = get_ticker(symbol)
-            [qty, isValid] = get_order_qty(symbol, freeUSDT / float(ticker["askPrice"]))
-
-            if isValid:
-                handle_sell_order(
-                    symbol, qty, app.config.get("DEVELOPMENT"), MARGIN_BUY, qty
-                )
