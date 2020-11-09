@@ -9,7 +9,9 @@ app.config.from_object(APP_SETTINGS)
 # db = SQLAlchemy(app)
 
 from cryptobot import routes
+from cryptobot.scheduler import start_scheduler
 from cryptobot.telegram import set_webhook
 from cryptobot.utils import handle_request
 
 set_webhook()
+start_scheduler()
