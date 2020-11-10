@@ -1,6 +1,6 @@
 from flask import request
 
-from settings import TG_BOT_TOKEN, TG_USER_ID
+from settings import TG_BOT_TOKEN
 
 from cryptobot import app
 from .utils import handle_request

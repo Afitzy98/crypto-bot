@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import utc
 from settings import DB_URI
 
-from .strategy import hourly_task
+from .telegram import send_message
 
 jobstores = {
     "default": SQLAlchemyJobStore(url=DB_URI),
