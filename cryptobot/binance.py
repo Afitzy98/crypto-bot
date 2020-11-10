@@ -4,27 +4,23 @@ import json
 import math
 import numpy as np
 import pandas as pd
+from datetime import datetime, timedelta
 
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
 from cryptobot import app
 from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT
+from .enums import Position
+from .model import add_position, get_position
 from .telegram import send_message
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
-
-state = {"prevPosition": {"shortPos": False, "longPos": False}}
-
-
-def setState(newState):
-    global state
-    state = newState
 
 
 def get_data(period: str, symbol: str):
     try:
         data = np.array(
-            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)
+            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, period)
         ).astype(float)
 
         return pd.DataFrame(
@@ -66,22 +62,24 @@ def get_ticker(symbol: str):
     return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 
-def handle_decision(longPos: bool, shortPos: bool, symbol: str):
-    prevPosition = state["prevPosition"]
-    if longPos:
+def handle_decision(position: Position, symbol: str):
+    prevPosition = get_position(get_previous_hour_dt(), symbol).position
+    print(f"Prev position {prevPosition}")
+
+    if position == Position.LONG:
         handle_long(symbol, prevPosition)
 
-    elif shortPos:
+    elif position == Position.SHORT:
         handle_short(symbol, prevPosition)
 
     else:
         handle_exit_positions(symbol, prevPosition)
 
-    setState({"prevPosition": {"shortPos": shortPos, "longPos": longPos}})
+    add_position(get_current_hour_dt(), symbol, position)
 
 
 def handle_exit_positions(symbol: str, prevPosition: dict):
-    if prevPosition["shortPos"]:
+    if prevPosition == Position.SHORT:
         equity = get_info_for_symbol(symbol)
         borrowedCoin = np.float(equity["coin"]["borrowed"])
         interest = np.float(equity["coin"]["interest"])
@@ -92,7 +90,7 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
             symbol, SIDE_BUY, AUTO_REPAY, qtyOwed, 0, app.config.get("DEVELOPMENT")
         )
 
-    if prevPosition["longPos"]:
+    if prevPosition == Position.LONG:
         equity = get_info_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
         qty = get_order_qty(symbol, freeCoin)
@@ -102,7 +100,7 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
 
 
 def handle_long(symbol: str, prevPosition: dict):
-    if not prevPosition["longPos"]:
+    if not prevPosition == Position.LONG:
         equity = get_info_for_symbol(symbol)
         freeUSDT = np.float(equity["usdt"]["free"])
         ticker = get_ticker(symbol)
@@ -114,7 +112,7 @@ def handle_long(symbol: str, prevPosition: dict):
 
 
 def handle_short(symbol: str, prevPosition: dict):
-    if prevPosition["longPos"]:
+    if prevPosition == Position.LONG:
         equity = get_info_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
         qty = get_order_qty(symbol, freeCoin * 2)
@@ -128,7 +126,7 @@ def handle_short(symbol: str, prevPosition: dict):
             app.config.get("DEVELOPMENT"),
         )
 
-    elif not prevPosition["shortPos"]:
+    elif not prevPosition == Position.SHORT:
         equity = get_info_for_symbol(symbol)
         freeUSDT = np.float(equity["usdt"]["free"])
         ticker = get_ticker(symbol)
@@ -154,7 +152,7 @@ def handle_order(
 ):
     try:
         kwargs = {
-            "symbol": symbol,
+            "symbol": symbol + "USDT",
             "side": side,
             "type": ORDER_TYPE_MARKET,
             "quantity": quantity,
@@ -176,3 +174,13 @@ def handle_order(
     except Exception as e:
         print(e)
         send_message(e)
+
+
+def get_current_hour_dt():
+    return datetime.now().replace(microsecond=0, second=0, minute=0)
+
+
+def get_previous_hour_dt():
+    return datetime.now().replace(microsecond=0, second=0, minute=0) - timedelta(
+        hours=1
+    )
