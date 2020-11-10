@@ -27,8 +27,7 @@ def get_position(dt, symbol):
 
 def add_position(dt, symbol, position):
     try:
-        pos = HourlyPosition(time=dt, symbol=symbol, position=position.value)
-        db.session.add(pos)
+        db.session.add(HourlyPosition(time=dt, symbol=symbol, position=position.value))
         db.session.commit()
 
     except Exception as e:
