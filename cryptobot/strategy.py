@@ -29,10 +29,10 @@ def apply_strategy(symbol, asset):
     if longPos:
         pos = Position.LONG
     elif shortPos:
-        pos = Position.short
+        pos = Position.SHORT
 
     send_message(
-        f"\🆕\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}"
+        f"📢\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}"
     )
 
     return pos
