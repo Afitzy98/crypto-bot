@@ -10,7 +10,7 @@ jobstores = {
     "default": SQLAlchemyJobStore(url=DB_URI),
 }
 executors = {"default": ThreadPoolExecutor(20), "processpool": ProcessPoolExecutor(5)}
-job_defaults = {"coalesce": False, "max_instances": 3}
+job_defaults = {"coalesce": False, "max_instances": 3, "misfire_grace_time": 3 * 60}
 
 scheduler = BackgroundScheduler(
     jobstores=jobstores, executors=executors, job_defaults=job_defaults
@@ -18,10 +18,10 @@ scheduler = BackgroundScheduler(
 
 
 def add_job(func, kwargs):
+    if not scheduler.running:
+        start_scheduler()
     name = kwargs["symbol"]
-    job = scheduler.add_job(
-        func, "cron", name=name, minute="0", second="15", kwargs=kwargs
-    )
+    job = scheduler.add_job(func, "cron", name=name, minute="0-59", kwargs=kwargs)
     send_message(f"✅ Started trading with {name}USDT")
 
 
@@ -45,5 +45,6 @@ def remove_job(name: str):
 
 
 def start_scheduler():
-    scheduler.start()
-    send_message("🔄 Restarted Scheduler")
+    if not scheduler.running:
+        scheduler.start()
+        send_message("🔄 Restarted Scheduler")
