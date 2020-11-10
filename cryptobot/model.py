@@ -29,7 +29,7 @@ def add_position(dt, symbol, position):
     try:
         pos = HourlyPosition(time=dt, symbol=symbol, position=position.value)
         db.session.add(pos)
-        db.session.commit(
+        db.session.commit()
 
     except Exception as e:
         send_message(e)
