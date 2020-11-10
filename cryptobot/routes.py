@@ -91,7 +91,8 @@ def init_scheduler():
         job_defaults=job_defaults,
         timezone=utc,
     )
-    scheduler.start()
-    send_message("🔄 Scheduler has restarted")
+    if scheduler is not None and not scheduler.running:
+        scheduler.start()
+        send_message("🔄 Scheduler has restarted")
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
