@@ -17,5 +17,10 @@ def create_app():
 
     with app.app_context():
         from . import routes  # Import routes
+        from .scheduler import scheduler
+        from .telegram import set_webhook, send_message
 
+        scheduler.start()
+        send_message("🔄 Scheduler has restarted")
+        set_webhook()
         return app
