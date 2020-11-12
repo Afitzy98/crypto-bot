@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from settings import APP_SETTINGS, DB_URI
 
 from settings import TG_BOT_TOKEN
-
 from cryptobot import create_app
 from cryptobot.utils import handle_request
 from cryptobot.telegram import set_webhook, send_message
