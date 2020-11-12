@@ -26,9 +26,7 @@ atexit.register(lambda: scheduler.shutdown())
 
 def add_job(func, kwargs):
     name = kwargs["symbol"]
-    job = scheduler.add_job(
-        func, "cron", minute="0", second="15", name=name, kwargs=kwargs
-    )
+    job = scheduler.add_job(func, "cron", minute="0-59", name=name, kwargs=kwargs)
     send_message(f"✅ Started trading with {name}USDT")
 
 
