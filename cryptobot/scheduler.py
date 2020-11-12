@@ -15,8 +15,6 @@ executors = {
     "processpool": ProcessPoolExecutor(5),
 }
 job_defaults = {
-    "coalesce": False,
-    "max_instances": 3,
     "misfire_grace_time": 3 * 60,
 }
 
@@ -29,7 +27,7 @@ atexit.register(lambda: scheduler.shutdown())
 def add_job(func, kwargs):
     name = kwargs["symbol"]
     job = scheduler.add_job(
-        func, "cron", name=name, minute="0", second="15", kwargs=kwargs
+        func, "cron", minute="0", second="15", name=name, kwargs=kwargs
     )
     send_message(f"✅ Started trading with {name}USDT")
 
