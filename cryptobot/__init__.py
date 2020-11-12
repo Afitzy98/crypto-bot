@@ -11,8 +11,6 @@ db = SQLAlchemy(app)
 
 from cryptobot import routes
 from cryptobot.telegram import set_webhook, send_message
-from cryptobot.scheduler import scheduler
 
-scheduler.start()
 send_message("🔄 Scheduler has restarted")
 set_webhook()
