@@ -45,6 +45,10 @@ def get_jobs():
         send_message("0️⃣ There is currently nothing being traded.")
 
 
+def is_running():
+    send_message(f"Scheduler running: {scheduler.running}")
+
+
 def remove_job(name: str):
     jobs = scheduler.get_jobs()
     for job in jobs:
