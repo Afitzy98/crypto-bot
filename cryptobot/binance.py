@@ -1,6 +1,5 @@
 from binance.client import Client
 from binance.enums import *
-from flask import current_app
 import json
 import math
 import numpy as np
@@ -9,6 +8,7 @@ from datetime import datetime, timedelta
 
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
+from cryptobot import app
 from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT
 from .enums import Position
 from .model import add_position, get_position
@@ -92,7 +92,7 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
             AUTO_REPAY,
             qtyOwed,
             0,
-            current_app.config.get("DEVELOPMENT"),
+            app.config.get("DEVELOPMENT"),
         )
 
     if prevPosition == Position.LONG:
@@ -105,7 +105,7 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
             NO_SIDE_EFFECT,
             qty,
             0,
-            current_app.config.get("DEVELOPMENT"),
+            app.config.get("DEVELOPMENT"),
         )
 
 
@@ -117,7 +117,7 @@ def handle_long(symbol: str, prevPosition: dict):
         askPrice = float(ticker["askPrice"])
         qty = get_order_qty(symbol, freeUSDT / askPrice)
         handle_order(
-            symbol, SIDE_BUY, AUTO_REPAY, qty, 0, current_app.config.get("DEVELOPMENT")
+            symbol, SIDE_BUY, AUTO_REPAY, qty, 0, app.config.get("DEVELOPMENT")
         )
 
 
@@ -133,7 +133,7 @@ def handle_short(symbol: str, prevPosition: dict):
             MARGIN_BUY,
             qty,
             marginBuyBorrowAmount,
-            current_app.config.get("DEVELOPMENT"),
+            app.config.get("DEVELOPMENT"),
         )
 
     elif not prevPosition == Position.SHORT:
@@ -148,7 +148,7 @@ def handle_short(symbol: str, prevPosition: dict):
             MARGIN_BUY,
             qty,
             qty,
-            current_app.config.get("DEVELOPMENT"),
+            app.config.get("DEVELOPMENT"),
         )
 
 

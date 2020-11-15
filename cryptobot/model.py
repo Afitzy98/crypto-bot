@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from cryptobot import db
 from .enums import Position
 from .telegram import send_message

@@ -1,4 +1,5 @@
 from settings import TG_USER_ID
+from flask import current_app as app
 
 from .scheduler import get_jobs, add_job, remove_job, is_running
 from .strategy import hourly_task
