@@ -14,7 +14,7 @@ def apply_strategy(symbol, asset):
 
     asset["Returns"] = (asset["Close"] - asset["Close"].shift(1)) / asset[
         "Close"
-    ].shift(1)
+    ].shift(lag)
     asset["Std Ret"] = asset["Returns"].rolling(window).std().shift(1)
 
     currentOpen = asset["Open"].iloc[-1]
