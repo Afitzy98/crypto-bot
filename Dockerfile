@@ -1,5 +1,5 @@
 # Use the Pyhton buster image
-FROM python:3.8-buster
+FROM 001712226679.dkr.ecr.eu-west-1.amazonaws.com/python3.8-buster:latest
 
 # Set the working directory to /app
 WORKDIR /app
