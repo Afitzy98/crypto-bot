@@ -21,7 +21,7 @@ phases:
     - echo Pushing the Docker images...
     - docker push $REPOSITORY_URI:latest
     - docker push $REPOSITORY_URI:$IMAGE_TAG
-    - printf '[{"name":"cryptobot-%s","imageUri":"%s"}]' $BRANCH_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+    - printf '[{"name":"cryptobot-%s","imageUri":"%s"}]' $BRANCH_NAME $REPOSITORY_URI:$IMAGE_TAG > $CODEBUILD_SRC_DIR/imagedefinitions.json
 
 artifacts:
  files: imagedefinitions.json
