@@ -64,7 +64,6 @@ def get_ticker(symbol: str):
 
 def handle_decision(position: Position, symbol: str):
     prevPosition = get_position(get_previous_hour_dt(), symbol).position
-    print(f"Prev position {prevPosition}")
 
     if position == Position.LONG:
         handle_long(symbol, prevPosition)
