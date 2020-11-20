@@ -7,8 +7,6 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app 
 ADD . /app
 
-ENV DB_URI=postgresql://postgres:Fitzy2020@db-cb-dev.cunniuuekrsc.eu-west-1.rds.amazonaws.com:5432
-
 # Install the dependencies
 RUN pip install -r requirements.txt
 
