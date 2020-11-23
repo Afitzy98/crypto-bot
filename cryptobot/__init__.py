@@ -2,17 +2,18 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 from settings import APP_SETTINGS, DB_URI
-from cryptobot.scheduler import start_scheduler, scheduler
 
-start_scheduler()
+
 app = Flask(__name__)
 app.config.from_object(APP_SETTINGS)
 app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-from cryptobot import routes
-from cryptobot import scheduler
-from cryptobot.telegram import set_webhook
-from cryptobot.utils import handle_request
+from . import routes  # Import routes
+from .scheduler import scheduler
+from .telegram import set_webhook, send_message
 
+scheduler.start()
+send_message("🔄 Scheduler has restarted")
 set_webhook()
