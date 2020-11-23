@@ -1,6 +1,6 @@
 import os
 
-from settings import APP_SECRET_KEY, DB_URI
+from settings import APP_SECRET_KEY
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))

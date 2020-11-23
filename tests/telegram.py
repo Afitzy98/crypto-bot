@@ -5,8 +5,8 @@ from cryptobot.telegram import set_webhook, send_message
 
 MESSAGE = "TEST"
 
-class TestTelegram(unittest.TestCase):
 
+class TestTelegram(unittest.TestCase):
     @mock.patch("requests.post", autospec=True, side_effect=Exception)
     def test_set_webhook_failing(self, mock_req_post):
         set_webhook()
@@ -28,5 +28,5 @@ class TestTelegram(unittest.TestCase):
         mock_req_post.assert_called_once()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

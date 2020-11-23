@@ -64,7 +64,6 @@ def get_ticker(symbol: str):
 
 def handle_decision(position: Position, symbol: str):
     prevPosition = get_position(get_previous_hour_dt(), symbol).position
-    print(f"Prev position {prevPosition}")
 
     if position == Position.LONG:
         handle_long(symbol, prevPosition)
@@ -87,7 +86,12 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
         qtyOwed = get_order_qty(symbol, borrowedCoin + interest)
 
         handle_order(
-            symbol, SIDE_BUY, AUTO_REPAY, qtyOwed, 0, app.config.get("DEVELOPMENT")
+            symbol,
+            SIDE_BUY,
+            AUTO_REPAY,
+            qtyOwed,
+            0,
+            app.config.get("DEVELOPMENT"),
         )
 
     if prevPosition == Position.LONG:
@@ -95,7 +99,12 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
         freeCoin = np.float(equity["coin"]["free"])
         qty = get_order_qty(symbol, freeCoin)
         handle_order(
-            symbol, SIDE_SELL, NO_SIDE_EFFECT, qty, 0, app.config.get("DEVELOPMENT")
+            symbol,
+            SIDE_SELL,
+            NO_SIDE_EFFECT,
+            qty,
+            0,
+            app.config.get("DEVELOPMENT"),
         )
 
 
