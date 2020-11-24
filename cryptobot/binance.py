@@ -14,11 +14,14 @@ from .enums import Position
 from .model import add_position, get_position
 from .telegram import send_message
 
-client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
+
+def get_client():
+    return Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
 
 def get_data(period: str, symbol: str):
     try:
+        client = get_client()
         data = np.array(
             client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)
         ).astype(float)
@@ -33,17 +36,38 @@ def get_data(period: str, symbol: str):
 
 def get_order_qty(symbol: str, coins_available: float):
     ticks = ""
+    client = get_client()
     for filt in client.get_symbol_info(symbol + "USDT")["filters"]:
         if filt["filterType"] == "LOT_SIZE":
             ticks = filt["stepSize"].find("1") - 2
             return math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
 
 
+def get_equity():
+    VALID_FIELDS = ["free", "borrowed", "interest", "netAsset"]
+    out = "Asset\t Free\t Borrowed\t Interest\t Net \n"
+    client = get_client()
+    for asset in client.get_margin_account()["userAssets"]:
+        should_print = False
+        sym = asset["asset"]
+        part = f"{sym}\t "
+        for field in VALID_FIELDS:
+            val = float(asset[field])
+            part += f"{round(val, 2)}\t "
+            if val > 0:
+                should_print = True
+
+        if should_print:
+            out += part + "\n"
+
+    send_message(out)
+
+
 def get_info_for_symbol(symbol: str):
     try:
         coin = None
         usdt = None
-
+        client = get_client()
         for asset in client.get_margin_account()["userAssets"]:
             if asset["asset"] == "USDT":
                 usdt = asset
@@ -57,6 +81,7 @@ def get_info_for_symbol(symbol: str):
 
 
 def get_ticker(symbol: str):
+    client = get_client()
     return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 
@@ -158,6 +183,7 @@ def handle_order(
     DEVELOPMENT: bool,
 ):
     try:
+        client = get_client()
         kwargs = {
             "symbol": symbol + "USDT",
             "side": side,

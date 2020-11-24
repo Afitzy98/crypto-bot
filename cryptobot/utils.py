@@ -4,13 +4,14 @@ from flask import current_app as app
 from .scheduler import get_jobs, add_job, remove_job, is_running
 from .strategy import hourly_task
 from .telegram import send_message
-
+from .binance import get_equity
 
 switcher = {
-    "start": add_job,
-    "stop": remove_job,
+    "equity": get_equity,
     "list": get_jobs,
+    "start": add_job,
     "running": is_running,
+    "stop": remove_job,
 }
 
 
