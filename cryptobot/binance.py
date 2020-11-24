@@ -27,8 +27,8 @@ def get_data(period: str, symbol: str):
             data[:, 1:5], index=data[:, 0], columns=["Open", "High", "Low", "Close"]
         )
 
-    except Exception as e:
-        send_message(e)
+    except Exception:
+        send_message("⚠️ Error getting data from Binance...")
 
 
 def get_order_qty(symbol: str, coins_available: float):
@@ -52,8 +52,10 @@ def get_info_for_symbol(symbol: str):
 
         return {"coin": coin, "usdt": usdt}
 
-    except Exception as e:
-        send_message(e)
+    except Exceptionz:
+        send_message(
+            "⚠️ Error getting data from Binance you should check your account...."
+        )
 
 
 def get_ticker(symbol: str):
@@ -165,20 +167,21 @@ def handle_order(
             "quantity": quantity,
         }
 
-        # if marginBuyBorrowAmount > 0 and not DEVELOPMENT:
-        #     kwargs["marginBuyBorrowAmount"] = marginBuyBorrowAmount
+        if marginBuyBorrowAmount > 0 and not DEVELOPMENT:
+            kwargs["marginBuyBorrowAmount"] = marginBuyBorrowAmount
 
-        # if DEVELOPMENT:
-        client.create_test_order(**kwargs)
-        # else:
-        #     kwargs["sideEffectType"] = sideEffectType
-        #     client.create_margin_order(**kwargs)
+        if DEVELOPMENT:
+            client.create_test_order(**kwargs)
+        else:
+            kwargs["sideEffectType"] = sideEffectType
+            client.create_margin_order(**kwargs)
 
         send_message(
             f"Order has just been placed for {quantity} {symbol}! Side: {side}"
         )
 
     except Exception as e:
+        print(e)
         send_message(e)
 
 
