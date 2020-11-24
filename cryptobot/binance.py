@@ -14,6 +14,8 @@ from .enums import Position
 from .model import add_position, get_position
 from .telegram import send_message
 
+RECV_WINDOW = 60000
+
 
 def get_client():
     return Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
@@ -48,7 +50,7 @@ def get_equity():
         VALID_FIELDS = ["free", "borrowed", "interest", "netAsset"]
         out = "Asset\t Free\t Borrowed\t Interest\t Net \n"
         client = get_client()
-        for asset in client.get_margin_account()["userAssets"]:
+        for asset in client.get_margin_account(recvWindow=RECV_WINDOW)["userAssets"]:
             should_print = False
             sym = asset["asset"]
             part = f"{sym}\t "
@@ -72,7 +74,7 @@ def get_info_for_symbol(symbol: str):
         coin = None
         usdt = None
         client = get_client()
-        for asset in client.get_margin_account()["userAssets"]:
+        for asset in client.get_margin_account(recvWindow=RECV_WINDOW)["userAssets"]:
             if asset["asset"] == "USDT":
                 usdt = asset
             if asset["asset"] == symbol:
@@ -193,6 +195,7 @@ def handle_order(
             "side": side,
             "type": ORDER_TYPE_MARKET,
             "quantity": quantity,
+            "recvWindow":RECV_WINDOW
         }
 
         if marginBuyBorrowAmount > 0 and not DEVELOPMENT:
