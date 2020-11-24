@@ -27,8 +27,8 @@ def get_data(period: str, symbol: str):
             data[:, 1:5], index=data[:, 0], columns=["Open", "High", "Low", "Close"]
         )
 
-    except Exception:
-        send_message("⚠️ Error getting data from Binance...")
+    except Exception as e:
+        send_message(e)
 
 
 def get_order_qty(symbol: str, coins_available: float):
@@ -52,10 +52,8 @@ def get_info_for_symbol(symbol: str):
 
         return {"coin": coin, "usdt": usdt}
 
-    except Exceptionz:
-        send_message(
-            "⚠️ Error getting data from Binance you should check your account...."
-        )
+    except Exception as e:
+        send_message(e)
 
 
 def get_ticker(symbol: str):
@@ -181,7 +179,6 @@ def handle_order(
         )
 
     except Exception as e:
-        print(e)
         send_message(e)
 
 
