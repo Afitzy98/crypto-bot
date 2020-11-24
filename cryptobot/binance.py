@@ -44,23 +44,27 @@ def get_order_qty(symbol: str, coins_available: float):
 
 
 def get_equity():
-    VALID_FIELDS = ["free", "borrowed", "interest", "netAsset"]
-    out = "Asset\t Free\t Borrowed\t Interest\t Net \n"
-    client = get_client()
-    for asset in client.get_margin_account()["userAssets"]:
-        should_print = False
-        sym = asset["asset"]
-        part = f"{sym}\t "
-        for field in VALID_FIELDS:
-            val = float(asset[field])
-            part += f"{round(val, 2)}\t "
-            if val > 0:
-                should_print = True
+    try:
+        VALID_FIELDS = ["free", "borrowed", "interest", "netAsset"]
+        out = "Asset\t Free\t Borrowed\t Interest\t Net \n"
+        client = get_client()
+        for asset in client.get_margin_account()["userAssets"]:
+            should_print = False
+            sym = asset["asset"]
+            part = f"{sym}\t "
+            for field in VALID_FIELDS:
+                val = float(asset[field])
+                part += f"{round(val, 2)}\t "
+                if val > 0:
+                    should_print = True
 
-        if should_print:
-            out += part + "\n"
+            if should_print:
+                out += part + "\n"
 
-    send_message(out)
+        send_message(out)
+
+    except Exception as e:
+        send_message(e)
 
 
 def get_info_for_symbol(symbol: str):
