@@ -20,7 +20,7 @@ client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 def get_data(period: str, symbol: str):
     try:
         data = np.array(
-            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)
+            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, period)
         ).astype(float)
 
         return pd.DataFrame(
@@ -165,10 +165,12 @@ def handle_order(
             "quantity": quantity,
         }
 
-        if marginBuyBorrowAmount > 0 and not DEVELOPMENT:
+        if (
+            marginBuyBorrowAmount > 0 and not True
+        ):  ###DEVELOPMENT - TESTING WHY DOESNT WORK IN PRODUCTION:
             kwargs["marginBuyBorrowAmount"] = marginBuyBorrowAmount
 
-        if DEVELOPMENT:
+        if True:  ###DEVELOPMENT - TESTING WHY DOESNT WORK IN PRODUCTION:
             client.create_test_order(**kwargs)
         else:
             kwargs["sideEffectType"] = sideEffectType
