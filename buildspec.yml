@@ -36,5 +36,5 @@ reports:
  coverage_reports:
   files:
    - coverage.xml
-  base-directory: /
+  discard-paths: yes
   file-format: JUNITXML
