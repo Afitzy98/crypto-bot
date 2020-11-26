@@ -3,9 +3,9 @@ version: 0.2
 phases:
  install:
   runtime-versions:
-   python: 3.7
+   python: 3.8
   commands:
-   - pip3 install coverage unittest
+   - pip3 install coverage unittest2
  pre_build:
   commands:
    - echo Running test cases ...
