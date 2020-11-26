@@ -14,16 +14,12 @@ from .enums import Position
 from .model import add_position, get_position
 from .telegram import send_message
 
-RECV_WINDOW = 60000
 
-
-def get_client():
-    return Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
+client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
 
 def get_data(period: str, symbol: str):
     try:
-        client = get_client()
         data = np.array(
             client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)
         ).astype(float)
@@ -37,20 +33,23 @@ def get_data(period: str, symbol: str):
 
 
 def get_order_qty(symbol: str, coins_available: float):
-    ticks = ""
-    client = get_client()
-    for filt in client.get_symbol_info(symbol + "USDT")["filters"]:
-        if filt["filterType"] == "LOT_SIZE":
-            ticks = filt["stepSize"].find("1") - 2
-            return math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
+    try:
+        ticks = "0"
+        for filt in client.get_symbol_info(symbol + "USDT")["filters"]:
+            if filt["filterType"] == "LOT_SIZE":
+                ticks = filt["stepSize"].find("1") - 2
+
+        return math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
+
+    except Exception as e:
+        send_message(e)
 
 
 def get_equity():
     try:
         VALID_FIELDS = ["free", "borrowed", "interest", "netAsset"]
         out = "Asset\t Free\t Borrowed\t Interest\t Net \n"
-        client = get_client()
-        for asset in client.get_margin_account(recvWindow=RECV_WINDOW)["userAssets"]:
+        for asset in client.get_margin_account()["userAssets"]:
             should_print = False
             sym = asset["asset"]
             part = f"{sym}\t "
@@ -73,8 +72,7 @@ def get_info_for_symbol(symbol: str):
     try:
         coin = None
         usdt = None
-        client = get_client()
-        for asset in client.get_margin_account(recvWindow=RECV_WINDOW)["userAssets"]:
+        for asset in client.get_margin_account()["userAssets"]:
             if asset["asset"] == "USDT":
                 usdt = asset
             if asset["asset"] == symbol:
@@ -87,7 +85,6 @@ def get_info_for_symbol(symbol: str):
 
 
 def get_ticker(symbol: str):
-    client = get_client()
     return client.get_orderbook_ticker(symbol=symbol + "USDT")
 
 
@@ -106,7 +103,7 @@ def handle_decision(position: Position, symbol: str):
     add_position(get_current_hour_dt(), symbol, position)
 
 
-def handle_exit_positions(symbol: str, prevPosition: dict):
+def handle_exit_positions(symbol: str, prevPosition: Position):
     if prevPosition == Position.SHORT:
         equity = get_info_for_symbol(symbol)
         borrowedCoin = np.float(equity["coin"]["borrowed"])
@@ -137,7 +134,7 @@ def handle_exit_positions(symbol: str, prevPosition: dict):
         )
 
 
-def handle_long(symbol: str, prevPosition: dict):
+def handle_long(symbol: str, prevPosition: Position):
     if not prevPosition == Position.LONG:
         equity = get_info_for_symbol(symbol)
         freeUSDT = np.float(equity["usdt"]["free"])
@@ -149,7 +146,7 @@ def handle_long(symbol: str, prevPosition: dict):
         )
 
 
-def handle_short(symbol: str, prevPosition: dict):
+def handle_short(symbol: str, prevPosition: Position):
     if prevPosition == Position.LONG:
         equity = get_info_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
@@ -189,13 +186,11 @@ def handle_order(
     DEVELOPMENT: bool,
 ):
     try:
-        client = get_client()
         kwargs = {
             "symbol": symbol + "USDT",
             "side": side,
             "type": ORDER_TYPE_MARKET,
             "quantity": quantity,
-            "recvWindow":RECV_WINDOW
         }
 
         if marginBuyBorrowAmount > 0 and not DEVELOPMENT:

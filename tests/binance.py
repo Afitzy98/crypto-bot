@@ -1,8 +1,11 @@
+from datetime import datetime
+import requests
 import unittest
 from unittest import mock
 
 from cryptobot.binance import (
     get_data,
+    get_equity,
     get_info_for_symbol,
     get_order_qty,
     handle_decision,
@@ -11,6 +14,9 @@ from cryptobot.binance import (
     handle_order,
     handle_short,
 )
+from cryptobot.enums import Position
+from cryptobot.model import add_position, get_position, HourlyPosition
+
 
 from cryptobot import app
 
@@ -21,7 +27,7 @@ SYMBOL_INFO = {
         {"filterType": "LOT_SIZE", "stepSize": "0.001", "minQty": "0.01"},
     ]
 }
-EMPTY_SYMBOL_FILTERS = {"filters": []}
+EMPTY_SYMBOL_FILTERS = {"filters": [{"filterType": "OTHER"}]}
 EXPECTED_COLUMNS = ["Open", "High", "Low", "Close"]
 LONG_ACCOUNT = {
     "userAssets": [{"asset": "SYM", "free": "0"}, {"asset": "USDT", "free": "100"}]
@@ -44,9 +50,31 @@ EXIT_POS_ACCOUNT = {
         {"asset": "USDT", "free": "100"},
     ]
 }
-NO_PREV_POS = {
-    "shortPos": False,
-    "longPos": False,
+
+PREVIOUS_NONE = HourlyPosition(
+    time=datetime.now(), symbol="TEST", position=Position.NONE
+)
+PREVIOUS_LONG = HourlyPosition(
+    time=datetime.now(), symbol="TEST", position=Position.LONG
+)
+
+EQUITY_ACCOUNT = {
+    "userAssets": [
+        {
+            "asset": "TEST1",
+            "free": "10",
+            "borrowed": "0",
+            "interest": "0",
+            "netAsset": "10",
+        },
+        {
+            "asset": "TEST2",
+            "free": "0",
+            "borrowed": "0",
+            "interest": "0",
+            "netAsset": "0",
+        },
+    ]
 }
 
 
@@ -77,60 +105,78 @@ class TestData(unittest.TestCase):
     @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
+    @mock.patch("cryptobot.db.session")
+    @mock.patch("cryptobot.model.HourlyPosition")
     def test_handle_decision_long(
         self,
+        mock_get_pos,
+        mock_db_session,
         mock_test_order,
         mock_get_symbol_info,
         mock_orderbook_ticker,
         mock_get_account,
         mock_req_post,
     ):
+        mock_get_pos.query.get.return_value = PREVIOUS_NONE
         with app.app_context():
-            handle_decision(True, False, "SYM")
+            handle_decision(Position.LONG, "SYM")
             mock_test_order.assert_called_once()
             mock_get_symbol_info.assert_called_once()
             mock_orderbook_ticker.assert_called_once()
             mock_get_account.assert_called_once()
             mock_req_post.assert_called_once()
+            mock_get_pos.assert_called_once()
 
     @mock.patch("binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT)
     @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
+    @mock.patch("cryptobot.db.session")
+    @mock.patch("cryptobot.model.HourlyPosition")
     def test_handle_decision_short(
         self,
+        mock_get_pos,
+        mock_db_session,
         mock_test_order,
         mock_get_symbol_info,
         mock_orderbook_ticker,
         mock_get_account,
         mock_req_post,
     ):
+        mock_get_pos.query.get.return_value = PREVIOUS_NONE
         with app.app_context():
-            handle_decision(False, True, "SYM")
+            handle_decision(Position.SHORT, "SYM")
             mock_test_order.assert_called_once()
             mock_get_symbol_info.assert_called()
             mock_get_account.assert_called_once()
             mock_orderbook_ticker.assert_called_once()
             mock_req_post.assert_called_once()
+            mock_get_pos.assert_called_once()
 
     @mock.patch(
         "binance.client.Client.get_margin_account", return_value=EXIT_POS_ACCOUNT
     )
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
+    @mock.patch("cryptobot.db.session")
+    @mock.patch("cryptobot.model.HourlyPosition")
     def test_handle_decision_no_signal(
         self,
+        mock_get_pos,
+        mock_db_session,
         mock_test_order,
         mock_get_symbol_info,
         mock_get_account,
         mock_req_post,
     ):
+        mock_get_pos.query.get.return_value = PREVIOUS_LONG
         with app.app_context():
-            handle_decision(False, False, "SYM")
+            handle_decision(Position.NONE, "SYM")
             mock_test_order.assert_called_once()
             mock_get_symbol_info.assert_called_once()
             mock_get_account.assert_called_once()
             mock_req_post.assert_called_once()
+            mock_get_pos.assert_called_once()
 
     @mock.patch("binance.client.Client.create_test_order", side_effect=Exception)
     def test_handle_order_failing(self, mock_test_order, mock_req_post):
@@ -154,7 +200,7 @@ class TestData(unittest.TestCase):
     ):
         handle_exit_positions(
             "SYM",
-            {"shortPos": True, "longPos": True},
+            Position.SHORT,
         )
         mock_get_symbol.assert_called()
         mock_get_account.assert_called()
@@ -184,7 +230,7 @@ class TestData(unittest.TestCase):
     ):
         handle_long(
             "",
-            {"shortPos": False, "longPos": True},
+            Position.LONG,
         )
         mock_get_account.assert_not_called()
         mock_get_symbol.assert_not_called()
@@ -201,7 +247,7 @@ class TestData(unittest.TestCase):
     ):
         handle_short(
             "SYM",
-            {"shortPos": False, "longPos": True},
+            Position.LONG,
         )
         mock_get_account.assert_called_once()
         mock_get_symbol.assert_called()
@@ -215,7 +261,7 @@ class TestData(unittest.TestCase):
     ):
         handle_short(
             "",
-            {"shortPos": True, "longPos": False},
+            Position.SHORT,
         )
         mock_get_symbol.assert_not_called()
         mock_req_post.assert_not_called()
@@ -227,13 +273,32 @@ class TestData(unittest.TestCase):
         mock_get_margin_account.assert_called_once()
         mock_req_post.assert_called_once()
 
-    @mock.patch(
-        "binance.client.Client.get_symbol_info", return_value=EMPTY_SYMBOL_FILTERS
-    )
+    @mock.patch("binance.client.Client.get_symbol_info")
     def test_get_order_qty_no_filter(self, mock_get_symbol, mock_req_post):
-        get_order_qty("", 1)
+        mock_get_symbol.return_value = EMPTY_SYMBOL_FILTERS
+        res = get_order_qty("", 1)
         mock_get_symbol.assert_called_once()
         mock_req_post.assert_not_called()
+        self.assertEqual(0, res)
+
+    @mock.patch("binance.client.Client.get_symbol_info", side_effect=Exception)
+    def test_get_order_qty_no_filter(self, mock_get_symbol, mock_req_post):
+        res = get_order_qty("", 1)
+        mock_get_symbol.assert_called_once()
+        mock_req_post.assert_called_once()
+        self.assertEqual(None, res)
+
+    @mock.patch("binance.client.Client.get_margin_account", side_effect=Exception)
+    def test_get_equity_failing(self, mock_get_account, mock_req_post):
+        get_equity()
+        self.assertRaises(Exception, mock_get_account)
+        mock_req_post.assert_called_once()
+
+    @mock.patch("binance.client.Client.get_margin_account", return_value=EQUITY_ACCOUNT)
+    def test_get_equity(self, mock_get_account, mock_req_post):
+        get_equity()
+        mock_get_account.assert_called_once()
+        mock_req_post.assert_called_once()
 
 
 if __name__ == "__main__":
