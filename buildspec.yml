@@ -33,7 +33,7 @@ artifacts:
  files: imagedefinitions.json
 
 reports:
- coverage_reports:
+ cobertura-report:
   files:
    - coverage.xml
   discard-paths: yes
