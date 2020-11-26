@@ -1,11 +1,11 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      python: 3.7
-    commands:
-      - pip3 install coverage unittest
+ install:
+  runtime-versions:
+   python: 3.7
+  commands:
+   - pip3 install coverage unittest
  pre_build:
   commands:
    - echo Running test cases ...
@@ -33,8 +33,8 @@ artifacts:
  files: imagedefinitions.json
 
 reports:
-  coverage_reports:
-    files:
-      - coverage.xml
-    base-directory: /
-    file-format: JUNITXML
+ coverage_reports:
+  files:
+   - coverage.xml
+  base-directory: /
+  file-format: JUNITXML
