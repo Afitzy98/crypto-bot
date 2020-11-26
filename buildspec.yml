@@ -37,4 +37,4 @@ reports:
   files:
    - coverage.xml
   discard-paths: yes
-  file-format: JUNITXML
+  file-format: COBERTURAXML
