@@ -14,7 +14,8 @@ def apply_strategy(symbol, asset):
 
     asset["Returns"] = (asset["Close"] - asset["Close"].shift(1)) / asset[
         "Close"
-    ].shift(lag)
+    ].shift(1)
+
     asset["Std Ret"] = asset["Returns"].rolling(window).std().shift(1)
 
     currentOpen = asset["Open"].iloc[-1]
@@ -38,7 +39,7 @@ def apply_strategy(symbol, asset):
     return pos
 
 
-def hourly_task(symbol: str):
+def task(symbol: str):
     period = "5 days ago"
     asset = get_data(period, symbol + "USDT")
     pos = apply_strategy(symbol, asset)
