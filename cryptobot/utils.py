@@ -2,7 +2,7 @@ from settings import TG_USER_ID
 from flask import current_app as app
 
 from .scheduler import get_jobs, add_job, remove_job, is_running
-from .strategy import hourly_task
+from .strategy import task
 from .telegram import send_message
 from .binance import get_equity
 
@@ -28,7 +28,7 @@ def handle_message(message: str):
     elif func.__code__.co_argcount == 1:
         func(parts[1])
     else:
-        func(hourly_task, kwargs={"symbol": parts[1]})
+        func(task, kwargs={"symbol": parts[1]})
 
 
 def handle_request(req: dict):

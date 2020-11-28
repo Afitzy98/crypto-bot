@@ -5,6 +5,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import utc
 from settings import DB_URI
 
+from cryptobot import app
+
 from .telegram import send_message
 
 jobstores = {
@@ -21,13 +23,19 @@ job_defaults = {
 scheduler = BackgroundScheduler(
     jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=utc
 )
-atexit.register(lambda: scheduler.shutdown())
+
+
+def shutdown():
+    scheduler.shutdown()
+
+
+atexit.register(shutdown)
 
 
 def add_job(func, kwargs):
     name = kwargs["symbol"]
     job = scheduler.add_job(
-        func, "cron", minute="0", second="15", name=name, kwargs=kwargs
+        func, "cron", minute="0,15,30,45", second="15", name=name, kwargs=kwargs
     )
     send_message(f"✅ Started trading with {name}USDT")
 

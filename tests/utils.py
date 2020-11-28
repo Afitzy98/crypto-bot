@@ -4,32 +4,49 @@ from unittest import mock
 from cryptobot.utils import handle_request
 from settings import TG_USER_ID
 
-MESSAGE1 = "start"
-MESSAGE2 = "test"
+MESSAGE1 = "start XTZ"
+MESSAGE2 = "stop XTZ"
 
 REQ1 = {"message": {"from": {"id": TG_USER_ID}, "text": MESSAGE1}}
 
 REQ2 = {"message": {"from": {"id": TG_USER_ID}, "text": MESSAGE2}}
 
-REQ3 = {"message": {"from": {"id": "NONE"}, "text": MESSAGE1}}
+REQ3 = {"message": {"from": {"id": TG_USER_ID}, "text": "test"}}
+
+REQ4 = {"message": {"from": {"id": "NONE"}, "text": MESSAGE1}}
 
 
 @mock.patch("requests.post", autospec=True)
 class TestUtils(unittest.TestCase):
     @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.start", autospec=True
+        "apscheduler.schedulers.background.BackgroundScheduler.add_job", autospec=True
     )
     def test_handle_valid_message_request(self, mock_sched_start, mock_req_post):
         handle_request(REQ1)
         mock_req_post.assert_called_once()
         mock_sched_start.assert_called_once()
 
-    def test_handle_invalid_message_request(self, mock_req_post):
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs", autospec=True
+    )
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.remove_job",
+        autospec=True,
+    )
+    def test_handle_another_valid_request(
+        self, mock_remove_job, mock_get_jobs, mock_req_post
+    ):
         handle_request(REQ2)
+        mock_get_jobs.assert_called_once()
+        mock_remove_job.assert_not_called()
+        mock_req_post.assert_not_called()
+
+    def test_handle_invalid_message_request(self, mock_req_post):
+        handle_request(REQ3)
         mock_req_post.assert_called_once()
 
     def test_handle_invalid_user_id_request(self, mock_req_post):
-        handle_request(REQ3)
+        handle_request(REQ4)
         mock_req_post.assert_not_called()
 
 

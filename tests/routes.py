@@ -16,7 +16,8 @@ class TestRoutes(unittest.TestCase):
             res = webhook_endpoint()
             self.assertEqual(res, "ERROR.WHILE_HANDLING_REQUEST")
 
-    def test_handle_request_passing(self):
+    @mock.patch("cryptobot.utils.handle_request")
+    def test_handle_request_passing(self, mock_handle_request):
         with app.test_request_context(json={"message": ""}):
             res = webhook_endpoint()
             self.assertEqual(res, "ok")
