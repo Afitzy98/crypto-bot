@@ -18,4 +18,4 @@ def webhook_endpoint():
         handle_request(req)
         return "ok"
     except Exception as e:
-        return str(e)
+        return "ERROR.WHILE_HANDLING_REQUEST"
