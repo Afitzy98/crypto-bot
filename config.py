@@ -28,4 +28,5 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+    DEVELOPMENT = True
     TESTING = True
