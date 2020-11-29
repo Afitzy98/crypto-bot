@@ -15,10 +15,10 @@ def apply_strategy(symbol, asset):
     currentOpen = asset["Open"].iloc[-1]
     previousOpen = asset["Open"].iloc[-(1+window)]
 
-    ret60 = (currentOpen - previousOpen) / previousOpen
+    ret60 =  (asset["Open"] - asset['Open'].shift(window)) / asset["Open"].shift(window)
 
-    longPos = currentOpen > ret60
-    shortPos = currentOpen < ret60
+    longPos =  ret60.iloc[-1] > 0
+    shortPos = ret60.iloc[-1] < 0
 
     if longPos:
         pos = Position.LONG
