@@ -37,8 +37,8 @@ def add_job(func, kwargs):
     job = scheduler.add_job(
         func,
         "cron",
-        minute="0,5,10,15,20,25,30,35,40,45,50,55",
-        second="10",
+        minute="0",
+        second="15",
         name=name,
         kwargs=kwargs,
     )
