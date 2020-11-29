@@ -89,7 +89,7 @@ def get_ticker(symbol: str):
 
 
 def handle_decision(position: Position, symbol: str):
-    prevPosition = get_position(get_previous_hour_dt(), symbol).position
+    prevPosition = get_position(get_previous_ts_dt(), symbol).position
 
     if position == Position.LONG:
         handle_long(symbol, prevPosition)
@@ -100,7 +100,7 @@ def handle_decision(position: Position, symbol: str):
     else:
         handle_exit_positions(symbol, prevPosition)
 
-    add_position(get_current_hour_dt(), symbol, position)
+    add_position(get_current_ts_dt(), symbol, position)
 
 
 def handle_exit_positions(symbol: str, prevPosition: Position):
@@ -210,11 +210,9 @@ def handle_order(
         send_message(e)
 
 
-def get_current_hour_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0)
+def get_current_ts_dt():
+    return datetime.now().replace(microsecond=0, second=0)
 
 
-def get_previous_hour_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0) - timedelta(
-        hours=1
-    )
+def get_previous_ts_dt():
+    return datetime.now().replace(microsecond=0, second=0) - timedelta(minutes=5)
