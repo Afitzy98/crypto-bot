@@ -211,8 +211,8 @@ def handle_order(
 
 
 def get_current_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0)
+    return datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
 def get_previous_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0) - timedelta(minutes=5)
+    return datetime.now().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)
