@@ -40,7 +40,7 @@ def apply_strategy(symbol, asset):
 
 
 def task(symbol: str):
-    period = "5 days ago"
+    period = "1 day ago"
     asset = get_data(period, symbol + "USDT")
     pos = apply_strategy(symbol, asset)
     handle_decision(pos, symbol)
