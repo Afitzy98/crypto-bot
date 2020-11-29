@@ -6,26 +6,19 @@ from cryptobot.enums import Position
 
 
 def apply_strategy(symbol, asset):
-    window = 96
+    window = 60
     entryZscore = 0.01
     lag = 2
     pos = Position.NONE
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
-    asset["Returns"] = (asset["Close"] - asset["Close"].shift(1)) / asset[
-        "Close"
-    ].shift(1)
-
-    asset["Std Ret"] = asset["Returns"].rolling(window).std().shift(1)
-
     currentOpen = asset["Open"].iloc[-1]
+    previousOpen = asset["Open"].iloc[-(1+window)]
 
-    longPos = currentOpen >= asset["High"].iloc[-(1 + lag)] * (
-        1 + entryZscore * asset["Std Ret"].iloc[-1]
-    )
-    shortPos = currentOpen <= asset["Low"].iloc[-(1 + lag)] * (
-        1 - entryZscore * asset["Std Ret"].iloc[-1]
-    )
+    ret60 = (currentOpen - previousOpen) / previousOpen
+
+    longPos = currentOpen > ret60
+    shortPos = currentOpen < ret60
 
     if longPos:
         pos = Position.LONG
@@ -40,7 +33,7 @@ def apply_strategy(symbol, asset):
 
 
 def task(symbol: str):
-    period = "1 day ago"
+    period = "5 days ago"
     asset = get_data(period, symbol + "USDT")
     pos = apply_strategy(symbol, asset)
     handle_decision(pos, symbol)
