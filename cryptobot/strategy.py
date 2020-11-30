@@ -6,7 +6,7 @@ from cryptobot.enums import Position
 
 
 def apply_strategy(symbol, asset):
-    window = 2
+    window = 1
     entryZscore = 0.01
     pos = Position.NONE
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
