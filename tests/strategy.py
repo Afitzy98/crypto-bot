@@ -43,15 +43,16 @@ class TestStrategy(unittest.TestCase):
         mock_req_post.assert_called_once()
         self.assertEqual(Position.LONG, pos)
 
-    @mock.patch(
-        "binance.client.Client.get_historical_klines", return_value=SHORT_RET_VAL
-    )
-    def test_strategy_short(self, mock_get_klines, mock_req_post):
-        asset = get_data("", "")
-        pos = apply_strategy("SYM", asset)
-        mock_get_klines.assert_called_once()
-        mock_req_post.assert_called_once()
-        self.assertEqual(Position.SHORT, pos)
+    #### CURRENTLY USING LONG ONLY STRATEGY ####
+    # @mock.patch(
+    #     "binance.client.Client.get_historical_klines", return_value=SHORT_RET_VAL
+    # )
+    # def test_strategy_short(self, mock_get_klines, mock_req_post):
+    #     asset = get_data("", "")
+    #     pos = apply_strategy("SYM", asset)
+    #     mock_get_klines.assert_called_once()
+    #     mock_req_post.assert_called_once()
+    #     self.assertEqual(Position.SHORT, pos)
 
 
 if __name__ == "__main__":
