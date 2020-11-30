@@ -6,19 +6,18 @@ from cryptobot.enums import Position
 
 
 def apply_strategy(symbol, asset):
-    window = 60
+    window = 1
     entryZscore = 0.01
-    lag = 2
     pos = Position.NONE
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
     currentOpen = asset["Open"].iloc[-1]
     previousOpen = asset["Open"].iloc[-(1+window)]
 
-    ret60 =  (asset["Open"] - asset['Open'].shift(window)) / asset["Open"].shift(window)
+    ret2 =  (asset["Open"] - asset['Open'].shift(window)) / asset["Open"].shift(window)
 
-    longPos =  ret60.iloc[-1] > 0
-    shortPos = ret60.iloc[-1] < 0
+    longPos =  ret2.iloc[-1] > 0
+    shortPos = ret2.iloc[-1] < 0
 
     if longPos:
         pos = Position.LONG
