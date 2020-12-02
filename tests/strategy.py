@@ -1,5 +1,6 @@
 from datetime import datetime
 import numpy as np
+import pandas as pd
 import unittest
 from unittest import mock
 
@@ -8,13 +9,14 @@ from cryptobot import app
 from cryptobot.binance import get_data
 from cryptobot.enums import Position
 from cryptobot.model import HourlyPosition
-from cryptobot.strategy import task, apply_strategy
+from cryptobot.strategy import task, apply_strategy, apply_strategy_on_history
 
 NO_SIDE_RET_VAL = np.zeros((150, 5))
 LONG_RET_VAL = np.linspace((1, 1, 1, 1, 1), (150, 150, 150, 150, 150), 150)
 SHORT_RET_VAL = np.linspace((150, 150, 150, 150, 150), (1, 1, 1, 1, 1), 150)
 HOURLY_POS = HourlyPosition(time=datetime.now(), symbol="TEST", position=Position.NONE)
 
+DF = pd.DataFrame(LONG_RET_VAL, columns=["Open", "High", "Low", "Close", "Volume"])
 
 @mock.patch("requests.post", autospec=True)
 class TestStrategy(unittest.TestCase):
@@ -42,6 +44,28 @@ class TestStrategy(unittest.TestCase):
         mock_get_klines.assert_called_once()
         mock_req_post.assert_called_once()
         self.assertEqual(Position.LONG, pos)
+
+
+
+    def test_apply_strategy_on_history_failing(self, mock_req_post):
+        res = apply_strategy_on_history(None, "SYM")
+        self.assertEqual(res, {
+            "symbol": "SYM",
+            'apr': 0,
+            'sharpe': 0,
+            'cumret': 0,
+            "numPositions": 0
+        })
+
+    def test_apply_strategy_on_history(self, mock_req_post):
+        res = apply_strategy_on_history(DF, "SYM")
+        self.assertEqual(res, {
+            'apr': 2.6894132784907985e+46,
+            'cumret': 5.237755999999998,
+            'numPositions': 126,
+            'sharpe': 123.44551623534706,
+            'symbol': 'SYM'
+        })
 
     #### CURRENTLY USING LONG ONLY STRATEGY ####
     # @mock.patch(

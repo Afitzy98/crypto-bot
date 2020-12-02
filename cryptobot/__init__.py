@@ -11,9 +11,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 from . import routes  # Import routes
-from .scheduler import scheduler
+from .scheduler import sched
 from .telegram import set_webhook, send_message
 
-scheduler.start()
+sched.start()
 send_message("🔄 Scheduler has restarted")
 set_webhook()
