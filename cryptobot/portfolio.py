@@ -4,6 +4,8 @@ from .model import get_position
 from .strategy import apply_strategy_on_history, task
 from .scheduler import get_symbols, remove_job, add_trade_job, add_portfolio_job, does_portfolio_exist, get_jobs
 from .telegram import send_message
+from threading import Thread
+
 
 def close_portfolio():
   if does_portfolio_exist():
@@ -17,10 +19,12 @@ def close_portfolio():
 
 def open_portfolio():
   if not does_portfolio_exist():
+    rebalance = RebalanceThread()
     add_portfolio_job(rebalance_portfolio)
-    rebalance_portfolio()
+    rebalance.start()
   else:
     get_jobs()
+
     
 sort_by_returns = lambda x: x["cumret"]
 
@@ -49,5 +53,6 @@ def rebalance_portfolio():
   
   send_message("Portfolio Rebalanced")
 
-
-
+class RebalanceThread(Thread):
+  def run(self):
+    rebalance_portfolio()
