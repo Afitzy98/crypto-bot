@@ -9,9 +9,10 @@ from datetime import datetime, timedelta
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
 from cryptobot import app
-from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT
+from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT, NUM_SYMBOLS
 from .enums import Position
 from .model import add_position, get_position
+from .scheduler import get_symbols
 from .telegram import send_message
 
 
@@ -35,7 +36,7 @@ def get_data(period: str, symbol: str):
 def get_order_qty(symbol: str, coins_available: float):
     try:
         ticks = "0"
-        for filt in client.get_symbol_info(symbol + "USDT")["filters"]:
+        for filt in client.get_symbol_info(symbol)["filters"]:
             if filt["filterType"] == "LOT_SIZE":
                 ticks = filt["stepSize"].find("1") - 2
 
@@ -68,14 +69,14 @@ def get_equity():
         send_message(e)
 
 
-def get_info_for_symbol(symbol: str):
+def get_margin_balance_for_symbol(symbol: str):
     try:
         coin = None
         usdt = None
         for asset in client.get_margin_account()["userAssets"]:
             if asset["asset"] == "USDT":
                 usdt = asset
-            if asset["asset"] == symbol:
+            if asset["asset"] == symbol[:-4]:
                 coin = asset
 
         return {"coin": coin, "usdt": usdt}
@@ -83,9 +84,17 @@ def get_info_for_symbol(symbol: str):
     except Exception as e:
         send_message(e)
 
+def get_balance_for_symbol(symbol: str):
+    try:
+        coin = client.get_asset_balance(symbol[:-4])
+        usdt = client.get_asset_balance(symbol[-4:])
+        return {"coin": coin, "usdt": usdt}
+
+    except Exception as e:
+        send_message(e)
 
 def get_ticker(symbol: str):
-    return client.get_orderbook_ticker(symbol=symbol + "USDT")
+    return client.get_orderbook_ticker(symbol=symbol)
 
 
 def handle_decision(position: Position, symbol: str):
@@ -105,13 +114,13 @@ def handle_decision(position: Position, symbol: str):
 
 def handle_exit_positions(symbol: str, prevPosition: Position):
     if prevPosition == Position.SHORT:
-        equity = get_info_for_symbol(symbol)
+        equity = get_margin_balance_for_symbol(symbol)
         borrowedCoin = np.float(equity["coin"]["borrowed"])
         interest = np.float(equity["coin"]["interest"])
 
         qtyOwed = get_order_qty(symbol, borrowedCoin + interest)
 
-        handle_order(
+        handle_margin_order(
             symbol,
             SIDE_BUY,
             AUTO_REPAY,
@@ -121,38 +130,57 @@ def handle_exit_positions(symbol: str, prevPosition: Position):
         )
 
     if prevPosition == Position.LONG:
-        equity = get_info_for_symbol(symbol)
+        equity = get_balance_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
         qty = get_order_qty(symbol, freeCoin)
         handle_order(
             symbol,
             SIDE_SELL,
-            NO_SIDE_EFFECT,
             qty,
-            0,
             app.config.get("DEVELOPMENT"),
         )
+
+def get_all_valid_symbols():
+    try:
+        data = client.get_exchange_info()["symbols"]
+        return [s["symbol"] for s in data if s["symbol"][-4:] == "USDT" and s["status"] == "TRADING"]
+    except Exception as e:
+        send_message(e)
+        return []
+
+
+def get_useable_usdt_qty(symbol: str):
+    usdt_in_coins = 0
+    symbols = [s for s in get_symbols() if s != symbol]
+    for s in symbols:
+        bal = np.float(client.get_asset_balance(asset=s[-4:])["free"])
+        ticker = np.float(get_ticker(symbol)["bidPrice"])
+        usdt_in_coins += bal * ticker
+    
+    free_usdt = np.float(client.get_asset_balance("USDT")["free"])
+
+    useable_usdt = (free_usdt + usdt_in_coins) / NUM_SYMBOLS
+
+    return useable_usdt if useable_usdt > free_usdt else free_usdt
 
 
 def handle_long(symbol: str, prevPosition: Position):
     if not prevPosition == Position.LONG:
-        equity = get_info_for_symbol(symbol)
-        freeUSDT = np.float(equity["usdt"]["free"])
-        ticker = get_ticker(symbol)
-        askPrice = float(ticker["askPrice"])
+        freeUSDT = get_useable_usdt_qty(symbol)
+        askPrice = float(get_ticker(symbol)["askPrice"])
         qty = get_order_qty(symbol, freeUSDT / askPrice)
         handle_order(
-            symbol, SIDE_BUY, AUTO_REPAY, qty, 0, app.config.get("DEVELOPMENT")
+            symbol, SIDE_BUY, qty, app.config.get("DEVELOPMENT")
         )
 
 
 def handle_short(symbol: str, prevPosition: Position):
     if prevPosition == Position.LONG:
-        equity = get_info_for_symbol(symbol)
+        equity = get_margin_balance_for_symbol(symbol)
         freeCoin = np.float(equity["coin"]["free"])
         qty = get_order_qty(symbol, freeCoin * 2)
         marginBuyBorrowAmount = get_order_qty(symbol, qty / 2)
-        handle_order(
+        handle_margin_order(
             symbol,
             SIDE_SELL,
             MARGIN_BUY,
@@ -162,12 +190,12 @@ def handle_short(symbol: str, prevPosition: Position):
         )
 
     elif not prevPosition == Position.SHORT:
-        equity = get_info_for_symbol(symbol)
+        equity = get_margin_balance_for_symbol(symbol)
         freeUSDT = np.float(equity["usdt"]["free"])
         ticker = get_ticker(symbol)
-        qty = get_order_qty(symbol, freeUSDT / float(ticker["askPrice"]))
+        qty = get_order_qty(symbol, freeUSDT / np.float(ticker["askPrice"]))
 
-        handle_order(
+        handle_margin_order(
             symbol,
             SIDE_SELL,
             MARGIN_BUY,
@@ -177,7 +205,7 @@ def handle_short(symbol: str, prevPosition: Position):
         )
 
 
-def handle_order(
+def handle_margin_order(
     symbol: str,
     side: str,
     sideEffectType: str,
@@ -187,7 +215,7 @@ def handle_order(
 ):
     try:
         kwargs = {
-            "symbol": symbol + "USDT",
+            "symbol": symbol,
             "side": side,
             "type": ORDER_TYPE_MARKET,
             "quantity": quantity,
@@ -201,6 +229,32 @@ def handle_order(
         else:
             kwargs["sideEffectType"] = sideEffectType
             client.create_margin_order(**kwargs)
+
+        send_message(
+            f"Order has just been placed for {quantity} {symbol}! Side: {side}"
+        )
+
+    except Exception as e:
+        send_message(e)
+
+def handle_order(
+    symbol: str,
+    side: str,
+    quantity: float,
+    DEVELOPMENT: bool,
+):
+    try:
+        kwargs = {
+            "symbol": symbol,
+            "side": side,
+            "type": ORDER_TYPE_MARKET,
+            "quantity": quantity,
+        }
+
+        if DEVELOPMENT:
+            client.create_test_order(**kwargs)
+        else:
+            client.create_order(**kwargs)
 
         send_message(
             f"Order has just been placed for {quantity} {symbol}! Side: {side}"
