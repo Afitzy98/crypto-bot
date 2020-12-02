@@ -158,10 +158,11 @@ def get_useable_usdt_qty(symbol: str):
         usdt_in_coins += bal * ticker
     
     free_usdt = np.float(client.get_asset_balance("USDT")["free"])
+   
 
-    useable_usdt = (free_usdt + usdt_in_coins) / NUM_SYMBOLS
-
-    return useable_usdt if useable_usdt > free_usdt else free_usdt
+    useable_usdt = (free_usdt + usdt_in_coins) * (1/NUM_SYMBOLS)
+    
+    return useable_usdt if free_usdt > useable_usdt else free_usdt
 
 
 def handle_long(symbol: str, prevPosition: Position):
