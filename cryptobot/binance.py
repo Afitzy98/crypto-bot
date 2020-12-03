@@ -162,7 +162,7 @@ def get_useable_usdt_qty(symbol: str):
 
     useable_usdt = (free_usdt + usdt_in_coins) * (1/NUM_SYMBOLS)
     
-    return useable_usdt if free_usdt > useable_usdt else free_usdt
+    return free_usdt if useable_usdt > free_usdt else useable_usdt
 
 
 def handle_long(symbol: str, prevPosition: Position):
@@ -258,7 +258,7 @@ def handle_order(
             client.create_order(**kwargs)
 
         send_message(
-            f"Order has just been placed for {quantity} {symbol}! Side: {side}"
+            f"Order has just been placed to {side.lower()} {quantity} {symbol}!"
         )
 
     except Exception as e:

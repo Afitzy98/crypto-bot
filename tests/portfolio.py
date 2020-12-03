@@ -57,27 +57,27 @@ class TestPortfolio(unittest.TestCase):
       mock_get_jobs.assert_called()
       mock_req_post.assert_called()
 
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.add_job",
-        autospec=True,
-    )
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
-        return_value=NO_JOBS,
-    )
-    @mock.patch(
-        "binance.client.Client.get_historical_klines", return_value=LONG_RET_VAL
-    )
-    @mock.patch(
-        "binance.client.Client.get_exchange_info", return_value=SYMBOLS_INFO
-    )
-    def test_open_portfolio(self, mock_get_symbol_info, mock_get_klines, mock_get_jobs,mock_add_job, mock_req_post):
-      open_portfolio()
-      mock_get_symbol_info.assert_called()
-      mock_get_klines.assert_called()
-      mock_get_jobs.assert_called()
-      mock_req_post.assert_called()
-      mock_add_job.assert_called()
+    # @mock.patch(
+    #     "apscheduler.schedulers.background.BackgroundScheduler.add_job",
+    #     autospec=True,
+    # )
+    # @mock.patch(
+    #     "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
+    #     return_value=NO_JOBS,
+    # )
+    # @mock.patch(
+    #     "binance.client.Client.get_historical_klines", return_value=LONG_RET_VAL
+    # )
+    # @mock.patch(
+    #     "binance.client.Client.get_exchange_info", return_value=SYMBOLS_INFO
+    # )
+    # def test_open_portfolio(self, mock_get_symbol_info, mock_get_klines, mock_get_jobs,mock_add_job, mock_req_post):
+    #   open_portfolio()
+    #   mock_get_symbol_info.assert_called()
+    #   mock_get_klines.assert_called()
+    #   mock_get_jobs.assert_called()
+    #   mock_req_post.assert_called()
+    #   mock_add_job.assert_called()
 
     @mock.patch(
         "apscheduler.schedulers.background.BackgroundScheduler.add_job",
