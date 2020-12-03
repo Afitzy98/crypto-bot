@@ -35,11 +35,13 @@ atexit.register(shutdown)
 
 def add_trade_job(func, kwargs):
     name = kwargs["symbol"]
+    job_num = len(get_symbols())
+    second = 15 + (5 * job_num)
     job = sched.add_job(
         func,
         "cron",
         minute="0",
-        second="15",
+        second=second,
         name=name,
         kwargs=kwargs,
     )

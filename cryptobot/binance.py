@@ -153,15 +153,15 @@ def get_useable_usdt_qty(symbol: str):
     usdt_in_coins = 0
     symbols = [s for s in get_symbols() if s != symbol]
     for s in symbols:
-        bal = np.float(client.get_asset_balance(asset=s[-4:])["free"])
-        ticker = np.float(get_ticker(symbol)["bidPrice"])
+        bal = np.float(client.get_asset_balance(asset=s[:-4])["free"])
+        ticker = np.float(get_ticker(s)["bidPrice"])
         usdt_in_coins += bal * ticker
     
     free_usdt = np.float(client.get_asset_balance("USDT")["free"])
    
 
     useable_usdt = (free_usdt + usdt_in_coins) * (1/NUM_SYMBOLS)
-    
+
     return free_usdt if useable_usdt > free_usdt else useable_usdt
 
 
