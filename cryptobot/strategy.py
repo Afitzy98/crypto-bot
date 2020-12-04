@@ -8,64 +8,13 @@ from cryptobot.enums import Position
 
 
 def apply_strategy_on_history(asset, symbol):
-  try:
-    lastPos = 0
-    nextPos = 0
-    data = asset.copy(deep=True)
-    data["Returns"] = (data["Close"] - data["Close"].shift(1)) / data["Close"].shift(1)
+  lookback = 96
+  asset["Returns"] = (asset["Close"] - asset["Close"].shift(lookback)) / asset["Close"].shift(lookback)
+  return {
+      "symbol": symbol,
+      "ret": asset["Returns"].iloc[-1]
+  }
 
-    data["MA25"] = data["Close"].rolling(25).mean()
-
-    data['ewm'] = data['Close'].ewm(span=20,min_periods=0,adjust=False,ignore_na=False).mean()
-
-    data["longs"] = (data['ewm'] > data['MA25']) 
-
-    positions = np.zeros(data["Open"].size)
-
-    positions[data["longs"]] = 1
-
-    ret = positions * data["Returns"]
-    ret[np.isnan(ret)] = 0
-    ## HANLE FEES #
-    for i in range(0,len(ret)):
-
-      if i < len(ret) - 1:
-        nextPos = positions[i+1]
-      
-      # SINGLE TRADE FEES
-      if not lastPos == positions[i] and not nextPos == positions[i]: # pragma: no cover
-        ret.iloc[i] -= 0.002
-      # CHAINED TRADE FEES
-      elif (not lastPos == positions[i] and nextPos == positions[i]) or (lastPos == positions[i] and not nextPos == positions[i]):
-        ret.iloc[i] -= 0.001
-
-      if positions[i] == -1: # pragma: no cover
-        ret.iloc[i] -= 0.001
-
-      lastPos = positions[i]
-
-    apr = (1+ret).prod() ** (8760/len(ret)) -1
-    
-    sharpe = ret.mean() * sqrt(8760) / ret.std()
-
-    cumret = (1+ret).cumprod() - 1
-
-    return {
-        "symbol": symbol,
-        'apr': apr,
-        'sharpe': sharpe,
-        'cumret': cumret.iloc[-1],
-        "numPositions": np.count_nonzero(positions)
-    }
-
-  except Exception as e:
-    return {
-        "symbol": symbol,
-        'apr': 0,
-        'sharpe': 0,
-        'cumret': 0,
-        "numPositions": 0
-    }
 
 def apply_strategy(symbol, asset):
     window = 1

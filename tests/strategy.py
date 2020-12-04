@@ -47,23 +47,10 @@ class TestStrategy(unittest.TestCase):
 
 
 
-    def test_apply_strategy_on_history_failing(self, mock_req_post):
-        res = apply_strategy_on_history(None, "SYM")
-        self.assertEqual(res, {
-            "symbol": "SYM",
-            'apr': 0,
-            'sharpe': 0,
-            'cumret': 0,
-            "numPositions": 0
-        })
-
     def test_apply_strategy_on_history(self, mock_req_post):
         res = apply_strategy_on_history(DF, "SYM")
         self.assertEqual(res, {
-            'apr': 2.6894132784907985e+46,
-            'cumret': 5.237755999999998,
-            'numPositions': 126,
-            'sharpe': 123.44551623534706,
+            "ret":1.7777777777777777,
             'symbol': 'SYM'
         })
 

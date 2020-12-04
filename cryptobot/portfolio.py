@@ -26,10 +26,10 @@ def open_portfolio():
     get_jobs()
 
     
-sort_by_returns = lambda x: x["cumret"]
+sort_by_returns = lambda x: x["ret"]
 
 def rebalance_portfolio():
-  send_message("Rebalancing Portfolio, This may take a few minutes...")
+  send_message("Rebalancing Portfolio, This may take a few moments...")
   symbols = get_all_valid_symbols()
   lookback = "1 week ago"
 
@@ -43,8 +43,8 @@ def rebalance_portfolio():
   current_symbols = get_symbols()
   for s in current_symbols:
     if s not in next_symbols:
-      handle_exit_positions(s, get_position(get_current_ts_dt(), s).position)
       remove_job(s)
+      handle_exit_positions(s, get_position(get_current_ts_dt(), s).position)
     else:
       next_symbols.remove(s)
 

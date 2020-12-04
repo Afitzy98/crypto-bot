@@ -51,9 +51,8 @@ def add_portfolio_job(func):
     job = sched.add_job(
         func,
         "cron",
-        day="1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31",
-        hour="11",
-        minute="45",
+        hour="1,3,5,7,9,11,13,15,17,19,21,23",
+        minute="55",
         name=PORTFOLIO_MANAGER,
     )
 
