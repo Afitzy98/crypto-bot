@@ -31,7 +31,7 @@ sort_by_returns = lambda x: x["ret"]
 def rebalance_portfolio():
   send_message("Rebalancing Portfolio, This may take a few moments...")
   symbols = get_all_valid_symbols()
-  lookback = "1 week ago"
+  lookback = "96 hours ago"
 
   data = []
 
