@@ -29,9 +29,9 @@ def open_portfolio():
 sort_by_returns = lambda x: x["ret"]
 
 def rebalance_portfolio():
-  send_message("Rebalancing Portfolio, This may take a few moments...")
+  send_message("Rebalancing Portfolio, This may take a few minutes...")
   symbols = get_all_valid_symbols()
-  lookback = "96 hours ago"
+  lookback = "1 week ago"
 
   data = []
 
