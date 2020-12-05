@@ -6,7 +6,7 @@ from .telegram import send_message
 
 class HourlyPosition(db.Model):
     time = db.Column(db.DateTime, primary_key=True)
-    symbol = db.Column(db.String(10), primary_key=True)
+    symbol = db.Column(db.String(25), primary_key=True)
     position = db.Column(
         db.Enum("none", "long", "short", name="Position"), default="none"
     )
