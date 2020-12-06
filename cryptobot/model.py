@@ -21,7 +21,7 @@ def get_position(dt, symbol):
     if pos is not None:
         return pos
     else:
-        return HourlyPosition(time=dt.now, symbol=symbol, position=Position.NONE.value)
+        return HourlyPosition(time=dt, symbol=symbol, position=Position.NONE.value)
 
 
 def add_position(dt, symbol, position):

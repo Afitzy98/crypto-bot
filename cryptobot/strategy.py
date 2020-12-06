@@ -17,8 +17,6 @@ def apply_strategy_on_history(asset, symbol):
 
 
 def apply_strategy(symbol, asset):
-    window = 1
-    entryZscore = 0.01
     pos = Position.NONE
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
@@ -26,15 +24,14 @@ def apply_strategy(symbol, asset):
     asset["MA25"] = asset["Close"].rolling(25).mean()
 
     longPos =  asset["ewm"].iloc[-1] > asset["MA25"].iloc[-1]
-    shortPos = False # LONG ONLY STRATEGY
 
     if longPos:
         pos = Position.LONG
-    # elif shortPos:
-    #     pos = Position.SHORT
+
+    txt = "↗️\tShould BUY!" if longPos else "↘️\tShould SELL!"
 
     send_message(
-        f"📢\t{symbol} \n🕛\tTime: {dt} \n↗️\tShould long: {longPos} \n↘️\tShould short: {shortPos}"
+        f"📢\t{symbol} \n🕛\tTime: {dt} \n{txt}"
     )
 
     return pos
