@@ -50,7 +50,7 @@ class TestStrategy(unittest.TestCase):
     def test_apply_strategy_on_history(self, mock_req_post):
         res = apply_strategy_on_history(DF, "SYM")
         self.assertEqual(res, {
-            "ret":1.7777777777777777,
+            "ret": 0.041666666666666664,
             'symbol': 'SYM'
         })
 
