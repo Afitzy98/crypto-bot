@@ -7,15 +7,11 @@ from cryptobot.binance import (
     get_all_valid_symbols,
     get_balance_for_symbol,
     get_data,
-    get_equity,
-    get_margin_balance_for_symbol,
     get_order_qty,
     handle_decision,
     handle_exit_positions,
     handle_long,
     handle_order,
-    handle_margin_order,
-    handle_short,
 )
 from cryptobot.constants import PORTFOLIO_MANAGER
 from cryptobot.enums import Position
@@ -160,32 +156,6 @@ class TestData(unittest.TestCase):
             mock_get_pos.assert_called_once()
             mock_handle_get_jobs.assert_called()
 
-    @mock.patch("binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT)
-    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
-    @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
-    @mock.patch("binance.client.Client.create_test_order", autospec=True)
-    @mock.patch("cryptobot.db.session")
-    @mock.patch("cryptobot.model.HourlyPosition")
-    def test_handle_decision_short(
-        self,
-        mock_get_pos,
-        mock_db_session,
-        mock_test_order,
-        mock_get_symbol_info,
-        mock_orderbook_ticker,
-        mock_get_account,
-        mock_req_post,
-    ):
-        mock_get_pos.query.get.return_value = PREVIOUS_NONE
-        with app.app_context():
-            handle_decision(Position.SHORT, "SYM")
-            mock_test_order.assert_called_once()
-            mock_get_symbol_info.assert_called()
-            mock_get_account.assert_called_once()
-            mock_orderbook_ticker.assert_called_once()
-            mock_req_post.assert_called_once()
-            mock_get_pos.assert_called_once()
-
     @mock.patch(
         "binance.client.Client.get_asset_balance", return_value=ASSET_BALANCE
     )
@@ -211,21 +181,9 @@ class TestData(unittest.TestCase):
             mock_req_post.assert_called_once()
             mock_get_pos.assert_called_once()
 
-    @mock.patch("binance.client.Client.create_test_order", side_effect=Exception)
-    def test_handle_margin_order_failing(self, mock_test_order, mock_req_post):
-        handle_margin_order("", "", "", 1, 1, True)
-        mock_req_post.assert_called_once()
-        mock_test_order.assert_called_once()
-
-    @mock.patch("binance.client.Client.create_margin_order", autospec=True)
-    def test_real_margin_order(self, mock_real_order, mock_req_post):
-        handle_margin_order("", "", "", 1, 1, False)
-        mock_req_post.assert_called_once()
-        mock_real_order.assert_called_once()
-
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch(
-        "binance.client.Client.get_margin_account", return_value=SHORT_ACCOUNT
+        "binance.client.Client.get_asset_balance", return_value=ASSET_BALANCE
     )
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
     def test_handle_exit_positions(
@@ -233,7 +191,7 @@ class TestData(unittest.TestCase):
     ):
         handle_exit_positions(
             "BTCUSDT",
-            Position.SHORT,
+            Position.LONG,
         )
         mock_get_symbol.assert_called()
         mock_get_account.assert_called()
@@ -270,41 +228,6 @@ class TestData(unittest.TestCase):
         mock_req_post.assert_not_called()
         mock_test_order.assert_not_called()
 
-    @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
-    @mock.patch("binance.client.Client.create_test_order", autospec=True)
-    @mock.patch(
-        "binance.client.Client.get_margin_account", return_value=EXIT_POS_ACCOUNT
-    )
-    def test_handle_short_from_long(
-        self, mock_get_account, mock_test_order, mock_get_symbol, mock_req_post
-    ):
-        handle_short(
-            "BTCUSDT",
-            Position.LONG,
-        )
-        mock_get_account.assert_called_once()
-        mock_get_symbol.assert_called()
-        mock_req_post.assert_called_once()
-        mock_test_order.assert_called_once()
-
-    @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
-    @mock.patch("binance.client.Client.create_test_order", autospec=True)
-    def test_handle_short_doing_nothing(
-        self, mock_test_order, mock_get_symbol, mock_req_post
-    ):
-        handle_short(
-            "",
-            Position.SHORT,
-        )
-        mock_get_symbol.assert_not_called()
-        mock_req_post.assert_not_called()
-        mock_test_order.assert_not_called()
-
-    @mock.patch("binance.client.Client.get_margin_account", side_effect=Exception)
-    def test_get_symbol_info_failing(self, mock_get_margin_account, mock_req_post):
-        get_margin_balance_for_symbol("")
-        mock_get_margin_account.assert_called_once()
-        mock_req_post.assert_called_once()
 
     @mock.patch("binance.client.Client.get_symbol_info")
     def test_get_order_qty_no_filter(self, mock_get_symbol, mock_req_post):
@@ -321,17 +244,7 @@ class TestData(unittest.TestCase):
         mock_req_post.assert_called_once()
         self.assertEqual(None, res)
 
-    @mock.patch("binance.client.Client.get_margin_account", side_effect=Exception)
-    def test_get_equity_failing(self, mock_get_account, mock_req_post):
-        get_equity()
-        self.assertRaises(Exception, mock_get_account)
-        mock_req_post.assert_called_once()
 
-    @mock.patch("binance.client.Client.get_margin_account", return_value=EQUITY_ACCOUNT)
-    def test_get_equity(self, mock_get_account, mock_req_post):
-        get_equity()
-        mock_get_account.assert_called_once()
-        mock_req_post.assert_called_once()
 
     @mock.patch("binance.client.Client.create_order", side_effect=Exception)
     def test_handle_order_failing(self, mock_create_order, mock_req_post):

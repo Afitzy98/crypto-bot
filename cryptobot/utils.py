@@ -1,7 +1,6 @@
 from settings import TG_USER_ID
 from flask import current_app as app
 
-from .binance import get_equity
 from .portfolio import close_portfolio, open_portfolio
 from .scheduler import get_jobs, is_running
 from .strategy import task
@@ -9,7 +8,6 @@ from .telegram import send_message
 
 
 switcher = {
-    "equity": get_equity,
     "list": get_jobs,
     "start": open_portfolio,
     "running": is_running,
