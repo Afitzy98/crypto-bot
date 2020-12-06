@@ -1,11 +1,11 @@
+import threading
+
 from .binance import get_all_valid_symbols, get_data, handle_exit_positions, get_current_ts_dt
 from .constants import NUM_SYMBOLS
 from .model import get_position
 from .strategy import apply_strategy_on_history, task
 from .scheduler import get_symbols, remove_job, add_trade_job, add_portfolio_job, does_portfolio_exist, get_jobs
 from .telegram import send_message
-from threading import Thread
-
 
 def close_portfolio():
   if does_portfolio_exist():
@@ -16,22 +16,13 @@ def close_portfolio():
   else:
     get_jobs()
     send_message("Say start to begin trading, or help for a list of commands.")
-
-def open_portfolio():
-  if not does_portfolio_exist():
-    rebalance = RebalanceThread()
-    add_portfolio_job(rebalance_portfolio)
-    rebalance.start()
-  else:
-    get_jobs()
-
     
 sort_by_returns = lambda x: x["ret"]
 
 def rebalance_portfolio():
   send_message("Rebalancing Portfolio, This may take a few moments...")
   symbols = get_all_valid_symbols()
-  lookback = "1 week ago"
+  lookback = "1 day ago"
 
   data = []
 
@@ -53,6 +44,11 @@ def rebalance_portfolio():
   
   send_message("Portfolio Rebalanced")
 
-class RebalanceThread(Thread):
-  def run(self):
-    rebalance_portfolio()
+rebalance_thread = threading.Thread(target=rebalance_portfolio)
+
+def open_portfolio():
+  if not does_portfolio_exist():
+    add_portfolio_job(rebalance_portfolio)
+    rebalance_thread.start()
+  else:
+    get_jobs()

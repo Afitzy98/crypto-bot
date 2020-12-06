@@ -8,7 +8,7 @@ from cryptobot.enums import Position
 
 
 def apply_strategy_on_history(asset, symbol):
-  lookback = 96
+  lookback = 6
   asset["Returns"] = (asset["Close"] - asset["Close"].shift(lookback)) / asset["Close"].shift(lookback)
   return {
       "symbol": symbol,
@@ -20,10 +20,10 @@ def apply_strategy(symbol, asset):
     pos = Position.NONE
     dt = datetime.fromtimestamp(asset.index[-1] / 1000)
 
-    asset['ewm'] = asset['Close'].ewm(span=20,min_periods=0,adjust=False,ignore_na=False).mean()
-    asset["MA25"] = asset["Close"].rolling(25).mean()
+    asset['ewm'] = asset['Close'].ewm(span=4,min_periods=0,adjust=False,ignore_na=False).mean()
+    asset["MA5"] = asset["Close"].rolling(5).mean()
 
-    longPos =  asset["ewm"].iloc[-1] > asset["MA25"].iloc[-1]
+    longPos =  asset["ewm"].iloc[-1] > asset["MA5"].iloc[-1]
 
     if longPos:
         pos = Position.LONG
@@ -38,7 +38,7 @@ def apply_strategy(symbol, asset):
 
 
 def task(symbol: str):
-    period = "1 week ago"
+    period = "1 day ago"
     asset = get_data(period, symbol)
     pos = apply_strategy(symbol, asset)
     handle_decision(pos, symbol)
