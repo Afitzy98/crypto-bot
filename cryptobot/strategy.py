@@ -8,7 +8,7 @@ from cryptobot.enums import Position
 
 
 def apply_strategy_on_history(asset, symbol):
-  lookback = 12
+  lookback = 6
   asset["Returns"] = (asset["Close"] - asset["Close"].shift(lookback)) / asset["Close"].shift(lookback)
   return {
       "symbol": symbol,
