@@ -1,24 +1,15 @@
-from datetime import datetime
-import requests
 import unittest
+from datetime import datetime
 from unittest import mock
 
-from cryptobot.binance import (
-    get_all_valid_symbols,
-    get_balance_for_symbol,
-    get_data,
-    get_order_qty,
-    handle_decision,
-    handle_exit_positions,
-    handle_long,
-    handle_order,
-)
-from cryptobot.constants import PORTFOLIO_MANAGER
-from cryptobot.enums import Position
-from cryptobot.model import add_position, get_position, HourlyPosition
-
-
+import requests
 from cryptobot import app
+from cryptobot.binance import (get_all_valid_symbols, get_balance_for_symbol,
+                               get_data, get_order_qty, handle_decision,
+                               handle_exit_positions, handle_long,
+                               handle_order)
+from cryptobot.enums import JobType, Position
+from cryptobot.model import HourlyPosition, add_position, get_position
 
 TICKER = {"askPrice": 10, "bidPrice": 9}
 SYMBOL_INFO = {
@@ -90,7 +81,7 @@ class MockJob:
         self.name = name
         self.id = id
 
-JOBS = [MockJob(name="BTCUSDT", id=1),MockJob(name="LTCUSDT", id=2), MockJob(name="XRPUSDT", id=2), MockJob(name=PORTFOLIO_MANAGER, id=3)]
+JOBS = [MockJob(name="BTCUSDT,LTCUSDT,XRPUSDT", id=1), MockJob(name=JobType.PORTFOLIO_MANAGER, id=3)]
 
 
 

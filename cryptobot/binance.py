@@ -1,20 +1,20 @@
-from binance.client import Client
-from binance.enums import *
 import json
 import math
-import numpy as np
-import pandas as pd
 from datetime import datetime, timedelta
 
+import numpy as np
+import pandas as pd
 from settings import BINANCE_API_KEY, BINANCE_SECRET_KEY
 
+from binance.client import Client
+from binance.enums import *
 from cryptobot import app
+
 from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT, NUM_SYMBOLS
 from .enums import Position
 from .model import add_position, get_position
 from .scheduler import get_symbols
 from .telegram import send_message
-
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
@@ -22,7 +22,7 @@ client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 def get_data(period: str, symbol: str):
     try:
         data = np.array(
-            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1HOUR, period)
+            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, period)
         ).astype(float)
 
         return pd.DataFrame(
@@ -60,7 +60,6 @@ def get_ticker(symbol: str):
 
 def handle_decision(position: Position, symbol: str):
     prevPosition = get_position(get_previous_ts_dt(), symbol).position
-
     if position == Position.LONG:
         handle_long(symbol, prevPosition)
 
@@ -144,8 +143,8 @@ def handle_order(
 
 
 def get_current_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0)
+    return datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
 
 
 def get_previous_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)
+    return datetime.now().replace(microsecond=0, second=0, minute=0, hour=0) - timedelta(days=1)

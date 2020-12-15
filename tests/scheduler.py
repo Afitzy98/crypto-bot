@@ -1,8 +1,11 @@
 import unittest
+from datetime import datetime
 from unittest import mock
 
-from cryptobot.constants import PORTFOLIO_MANAGER
-from cryptobot.scheduler import add_trade_job, add_portfolio_job, get_jobs, remove_job, is_running, shutdown, does_portfolio_exist
+from cryptobot.enums import JobType
+from cryptobot.scheduler import (add_portfolio_job, add_trade_job,
+                                 does_portfolio_exist, get_jobs, is_running,
+                                 shutdown, stop_trading, update_symbols)
 
 
 class MockJob:
@@ -11,7 +14,7 @@ class MockJob:
         self.id = id
 
 
-JOBS = [MockJob(name="test", id=1), MockJob(name="test2", id=2), MockJob(name=PORTFOLIO_MANAGER, id=3)]
+JOBS = [MockJob(name="A,B,C", id=1), MockJob(name=JobType.PORTFOLIO_MANAGER, id=3)]
 NO_JOBS = []
 
 
@@ -21,8 +24,7 @@ class TestScheduler(unittest.TestCase):
         "apscheduler.schedulers.background.BackgroundScheduler.add_job", autospec=True
     )
     def test_add_trade_job(self, mock_add_job, mock_req_post):
-        add_trade_job(lambda x: x, {"symbol": "s"})
-        mock_req_post.assert_called_once()
+        add_trade_job(lambda x: x, {"symbols": ["s"]})
         mock_add_job.assert_called_once()
 
     @mock.patch(
@@ -42,33 +44,8 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(res, True)
         mock_get_jobs.assert_called_once()
 
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.remove_job",
-        autospec=True,
-    )
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
-        return_value=JOBS,
-    )
-    def test_remove_job(self, mock_get_jobs, mock_remove_job, mock_req_post):
-        remove_job("test")
-        mock_req_post.assert_called_once()
-        mock_get_jobs.assert_called_once()
-        mock_remove_job.assert_called_once()
 
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.remove_job",
-        autospec=True,
-    )
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
-        return_value=JOBS,
-    )
-    def test_remove__potfolio_job(self, mock_get_jobs, mock_remove_job, mock_req_post):
-        remove_job(PORTFOLIO_MANAGER)
-        mock_req_post.assert_not_called()
-        mock_get_jobs.assert_called_once()
-        mock_remove_job.assert_called_once()
+
 
     @mock.patch(
         "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
@@ -98,6 +75,53 @@ class TestScheduler(unittest.TestCase):
     def test_shutdown(self, mock_shutdown, mock_req_post):
         shutdown()
         mock_shutdown.assert_called_once()
+
+
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
+        return_value=NO_JOBS,
+    )   
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.add_job",
+    )     
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.remove_job",
+        autospec=True
+    )    
+    def test_update_symbols(self,mock_remove_job,mock_add_job, mock_get_jobs, mock_req_post):
+        update_symbols(["B", "C", "D"],  lambda symbols: symbols, lambda symbol, prevPosition: symbol,datetime.now())
+        mock_remove_job.assert_not_called()
+        mock_get_jobs.assert_called_once()
+
+        
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
+        return_value=JOBS,
+    )  
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.remove_all_jobs",
+        autospec=True
+    ) 
+    def test_stop_trading(self, mock_remove_jobs,mock_get_jobs, mock_req_post):
+        stop_trading(lambda symbol, prevPosition: symbol, datetime.now())
+        mock_get_jobs.assert_called_once()
+        mock_req_post.assert_called_once()
+        mock_remove_jobs.assert_called_once()
+
+    
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
+        return_value=NO_JOBS,
+    )   
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.remove_all_jobs",
+        autospec=True
+    )   
+    def test_stop_trading_no_jobs(self, mock_remove_jobs, mock_get_jobs, mock_req_post):
+        stop_trading(lambda symbol, prevPosition: symbol, datetime.now())
+        mock_get_jobs.assert_called_once()
+        mock_remove_jobs.assert_called_once()
+        mock_req_post.assert_not_called()
 
 
 if __name__ == "__main__":
