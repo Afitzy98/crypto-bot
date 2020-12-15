@@ -1,6 +1,7 @@
 import json
+
 import requests
-from settings import TG_BOT_TOKEN, WEBHOOK_URL, TG_USER_ID
+from settings import TG_BOT_TOKEN, TG_USER_ID, WEBHOOK_URL
 
 BASE_URL = "https://api.telegram.org/bot"
 
