@@ -1,16 +1,18 @@
 import unittest
 from unittest import mock
-import numpy as np
 
-from cryptobot.constants import PORTFOLIO_MANAGER
-from cryptobot.portfolio import open_portfolio, close_portfolio, rebalance_portfolio
+import numpy as np
+from cryptobot.enums import JobType
+from cryptobot.portfolio import (close_portfolio, open_portfolio,
+                                 rebalance_portfolio)
+
 
 class MockJob:
     def __init__(self, name, id):
         self.name = name
         self.id = id
 
-JOBS = [MockJob(name="BTCUSDT", id=1), MockJob(name="OTHERUSDT", id=2), MockJob(name=PORTFOLIO_MANAGER, id=3)]
+JOBS = [MockJob(name="BTCUSDT,OTHERUSDT", id=1), MockJob(name=JobType.PORTFOLIO_MANAGER, id=3)]
 NO_JOBS = []
 LONG_RET_VAL = np.linspace((1, 1, 1, 1, 1), (150, 150, 150, 150, 150), 150)
 SYMBOLS_INFO = {"symbols":[{"symbol":"BTCUSDT", "status":"TRADING"},{"symbol":"LTCUSDT", "status":"TRADING"},{"symbol":"ETHUSDT", "status":"TRADING"},{"symbol":"XRPUSDT", "status":"TRADING"},{"symbol":"BNBUSDT", "status":"TRADING"}]}
@@ -19,18 +21,17 @@ SYMBOLS_INFO = {"symbols":[{"symbol":"BTCUSDT", "status":"TRADING"},{"symbol":"L
 class TestPortfolio(unittest.TestCase):
 
     @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.remove_job",
+        "threading.Thread.start",
         autospec=True,
     )
     @mock.patch(
         "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
         return_value=JOBS,
     )
-    def test_close_portfolio(self,mock_get_job, mock_remove_job, mock_req_post):
+    def test_close_portfolio(self,mock_get_job, mock_thread, mock_req_post):
 
       close_portfolio() 
-      mock_req_post.assert_called()
-      mock_remove_job.assert_called()
+      mock_thread.assert_called()
       mock_get_job.assert_called()
     
     @mock.patch(
