@@ -1,22 +1,34 @@
 from datetime import datetime
-import pandas as pd
-import numpy as np
 from math import sqrt
-from cryptobot.binance import get_data, handle_decision
-from cryptobot.telegram import send_message
-from cryptobot.enums import Position
+
+import numpy as np
+import pandas as pd
+
+from .binance import get_data, handle_decision
+from .constants import SYMBOLS
+from .enums import Position
+from .telegram import send_message
 
 
-def apply_strategy_on_history(asset, symbol):
-  lookback = 14
-  asset["Returns"] = (asset["Close"] - asset["Close"].shift(lookback)) / asset["Close"].shift(lookback)
-  return {
-      "symbol": symbol,
-      "ret": asset["Returns"].iloc[-1]
-  }
+def apply_strategy(data):
+  pos = Position.NONE
 
+  data["MA5"] = data["Open"].rolling(5).mean()
+  data["MA20"] = data["Open"].rolling(20).mean()
+  
+  longs = data["MA5"] > data["MA20"]
 
+  if longs.values[-1] == True:
+    pos = Position.LONG
 
-def task(symbols: list):
-    for s in symbols:
-      handle_decision(Position.LONG, s)
+  return pos
+
+def task():
+  period = "1 month ago"
+  for s in SYMBOLS:
+    try:
+      d = get_data(period, s)
+      pos = apply_strategy(d)
+      handle_decision(pos, s)
+    except Exception as e:
+      send_message(e)

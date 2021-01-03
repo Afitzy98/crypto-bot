@@ -122,12 +122,8 @@ class TestData(unittest.TestCase):
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
     @mock.patch("cryptobot.db.session")
     @mock.patch("cryptobot.model.HourlyPosition")
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs", return_value=JOBS
-    )
     def test_handle_decision_long(
         self,
-        mock_handle_get_jobs,
         mock_get_pos,
         mock_db_session,
         mock_test_order,
@@ -145,7 +141,6 @@ class TestData(unittest.TestCase):
             mock_get_account.assert_called()
             mock_req_post.assert_called_once()
             mock_get_pos.assert_called_once()
-            mock_handle_get_jobs.assert_called()
 
     @mock.patch(
         "binance.client.Client.get_asset_balance", return_value=ASSET_BALANCE
