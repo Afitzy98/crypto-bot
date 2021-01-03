@@ -10,10 +10,9 @@ from binance.client import Client
 from binance.enums import *
 from cryptobot import app
 
-from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT, NUM_SYMBOLS
+from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT, SYMBOLS
 from .enums import Position
 from .model import add_position, get_position
-from .scheduler import get_symbols
 from .telegram import send_message
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
@@ -65,7 +64,7 @@ def handle_decision(position: Position, symbol: str):
 
     else:
         handle_exit_positions(symbol, prevPosition)
-
+        
     add_position(get_current_ts_dt(), symbol, position)
 
 
@@ -91,7 +90,7 @@ def get_all_valid_symbols():
 
 def get_useable_usdt_qty(symbol: str):
     usdt_in_coins = 0
-    symbols = [s for s in get_symbols() if s != symbol]
+    symbols = [s for s in SYMBOLS if s != symbol]
     for s in symbols:
         bal = np.float(client.get_asset_balance(asset=s[:-4])["free"])
         ticker = np.float(get_ticker(s)["bidPrice"])
@@ -100,7 +99,7 @@ def get_useable_usdt_qty(symbol: str):
     free_usdt = np.float(client.get_asset_balance("USDT")["free"])
    
 
-    useable_usdt = (free_usdt + usdt_in_coins) * (1/NUM_SYMBOLS)
+    useable_usdt = (free_usdt + usdt_in_coins) * (1/len(SYMBOLS))
 
     return free_usdt if useable_usdt > free_usdt else useable_usdt
 

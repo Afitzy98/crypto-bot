@@ -1,17 +1,43 @@
-from settings import TG_USER_ID
-from flask import current_app as app
+from threading import Thread
 
-from .portfolio import close_portfolio, open_portfolio
-from .scheduler import get_jobs, is_running
+from flask import current_app as app
+from settings import TG_USER_ID
+
+from .binance import get_current_ts_dt, handle_exit_positions
+from .constants import SYMBOLS
+from .enums import JobType
+from .model import get_position
+from .scheduler import add_trade_job, get_jobs, is_running, is_trading, sched
 from .strategy import task
 from .telegram import send_message
 
 
+def start_trading():
+    if not is_trading():
+        add_trade_job(task)
+        Thread(target=task).start()
+    else:
+        get_jobs()
+
+def stop_trading():
+    if is_trading():
+        Thread(target=exit_trade_positions).start()
+    else:
+        get_jobs()
+    
+def exit_trade_positions():
+    out = "🛑 Stopped trading with: \n"
+    for s in SYMBOLS:
+        handle_exit_positions(s, get_position(get_current_ts_dt(), s).position)
+        out+= f"\u2022 {s}\n"
+    send_message(out)
+    sched.remove_all_jobs()
+
 switcher = {
     "list": get_jobs,
-    "start": open_portfolio,
+    "start": start_trading,
     "running": is_running,
-    "stop": close_portfolio,
+    "stop": stop_trading,
 }
 
 
