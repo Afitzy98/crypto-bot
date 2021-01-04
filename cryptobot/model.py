@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from cryptobot import db
+
 from .enums import Position
 from .telegram import send_message
 
@@ -26,8 +28,12 @@ def get_position(dt, symbol):
 
 def add_position(dt, symbol, position):
     try:
+        pos = HourlyPosition.query.get((dt, symbol))
+        if pos is not None:
+            db.session.delete(pos)
         db.session.add(HourlyPosition(time=dt, symbol=symbol, position=position.value))
         db.session.commit()
+
 
     except Exception as e:
         send_message(e)
