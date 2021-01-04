@@ -14,9 +14,10 @@ def apply_strategy(data):
   pos = Position.NONE
 
   data["MA5"] = data["Open"].rolling(5).mean()
+  data["MA10"] = data["Open"].rolling(10).mean()
   data["MA20"] = data["Open"].rolling(20).mean()
   
-  longs = data["MA5"] > data["MA20"]
+  longs = (data["MA5"] > data["MA20"]) & (data["MA10"] > data["MA20"])
 
   if longs.values[-1] == True:
     pos = Position.LONG
