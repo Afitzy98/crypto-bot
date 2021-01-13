@@ -16,6 +16,7 @@ SYMBOL_INFO = {
     "filters": [
         {"filterType": "OTHER"},
         {"filterType": "LOT_SIZE", "stepSize": "0.001", "minQty": "0.01"},
+        {"filterType": "MIN_NOTIONAL", "minNotional":"10.0"}
     ]
 }
 EMPTY_SYMBOL_FILTERS = {"filters": [{"filterType": "OTHER"}]}
@@ -50,6 +51,7 @@ PREVIOUS_LONG = HourlyPosition(
 )
 
 ASSET_BALANCE = {"free":"100"}
+INVALID_ASSET_BALANCE = {"free": "0"}
 
 EQUITY_ACCOUNT = {
     "userAssets": [
@@ -149,8 +151,10 @@ class TestData(unittest.TestCase):
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
     @mock.patch("cryptobot.db.session")
     @mock.patch("cryptobot.model.HourlyPosition")
+    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
     def test_handle_decision_no_signal(
         self,
+        mock_get_ticker,
         mock_get_pos,
         mock_db_session,
         mock_test_order,
@@ -166,6 +170,7 @@ class TestData(unittest.TestCase):
             mock_get_account.assert_called()
             mock_req_post.assert_called_once()
             mock_get_pos.assert_called_once()
+            mock_get_ticker.assert_called_once()
 
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch(
@@ -199,17 +204,13 @@ class TestData(unittest.TestCase):
 
     @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
     @mock.patch("binance.client.Client.create_test_order", autospec=True)
-    @mock.patch(
-        "binance.client.Client.get_margin_account", return_value=EXIT_POS_ACCOUNT
-    )
     def test_handle_long_doing_nothing(
-        self, mock_get_account, mock_test_order, mock_get_symbol, mock_req_post
+        self,  mock_test_order, mock_get_symbol, mock_req_post
     ):
         handle_long(
             "",
             Position.LONG,
         )
-        mock_get_account.assert_not_called()
         mock_get_symbol.assert_not_called()
         mock_req_post.assert_not_called()
         mock_test_order.assert_not_called()
@@ -218,14 +219,14 @@ class TestData(unittest.TestCase):
     @mock.patch("binance.client.Client.get_symbol_info")
     def test_get_order_qty_no_filter(self, mock_get_symbol, mock_req_post):
         mock_get_symbol.return_value = EMPTY_SYMBOL_FILTERS
-        res = get_order_qty("", 1)
+        res = get_order_qty("", 1, 1)
         mock_get_symbol.assert_called_once()
         mock_req_post.assert_not_called()
         self.assertEqual(0, res)
 
     @mock.patch("binance.client.Client.get_symbol_info", side_effect=Exception)
     def test_get_order_qty_no_filter(self, mock_get_symbol, mock_req_post):
-        res = get_order_qty("", 1)
+        res = get_order_qty("", 1, 1)
         mock_get_symbol.assert_called_once()
         mock_req_post.assert_called_once()
         self.assertEqual(None, res)
@@ -252,6 +253,28 @@ class TestData(unittest.TestCase):
         mock_req_post.assert_not_called()
         mock_get_exchange_info.assert_called_once()
 
+
+    @mock.patch("binance.client.Client.get_asset_balance", return_value=INVALID_ASSET_BALANCE)
+    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
+    @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
+    def test_buy_invalid_qty(self, mock_get_symbol, mock_get_ticker, mock_get_asset_bal, mock_req_post):
+        handle_long("SYM", Position.NONE)
+        mock_get_symbol.assert_called_once()
+        mock_get_asset_bal.assert_called()
+        mock_get_ticker.assert_called()
+        mock_req_post.assert_called_once()
+    
+    @mock.patch("binance.client.Client.get_symbol_info", return_value=SYMBOL_INFO)
+    @mock.patch(
+        "binance.client.Client.get_asset_balance", return_value=INVALID_ASSET_BALANCE
+    )
+    @mock.patch("binance.client.Client.get_orderbook_ticker", return_value=TICKER)
+    def test_sell_invalid_qty(self, mock_get_ticker, mock_get_asset_bal, mock_get_symbol, mock_req_post):
+        handle_exit_positions("SYM",  Position.LONG)
+        mock_get_ticker.assert_called_once()
+        mock_get_asset_bal.assert_called_once()
+        mock_get_symbol.assert_called_once()
+        mock_req_post.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()

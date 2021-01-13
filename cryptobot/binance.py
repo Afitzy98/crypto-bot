@@ -32,14 +32,20 @@ def get_data(period: str, symbol: str):
         send_message(e)
 
 
-def get_order_qty(symbol: str, coins_available: float):
+def get_order_qty(symbol: str, coins_available: float, price: float):
     try:
         ticks = "0"
+        minimum = 0
         for filt in client.get_symbol_info(symbol)["filters"]:
             if filt["filterType"] == "LOT_SIZE":
                 ticks = filt["stepSize"].find("1") - 2
+            if filt["filterType"] == "MIN_NOTIONAL":
+                minimum = float(filt["minNotional"]) / price
 
-        return math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
+        qty = math.floor(coins_available * 10 ** ticks) / float(10 ** ticks)
+        isValid = qty > minimum
+
+        return qty, isValid
 
     except Exception as e:
         send_message(e)
@@ -71,13 +77,17 @@ def handle_decision(position: Position, symbol: str):
 def handle_exit_positions(symbol: str, prevPosition: Position):
     if prevPosition == Position.LONG:
         freeCoin = get_balance_for_symbol(symbol)
-        qty = get_order_qty(symbol, freeCoin)
-        handle_order(
-            symbol,
-            SIDE_SELL,
-            qty,
-            app.config.get("DEVELOPMENT"),
-        )
+        qty, isValid = get_order_qty(symbol, freeCoin, float(get_ticker(symbol)["bidPrice"]))
+
+        if isValid:
+            handle_order(
+                symbol,
+                SIDE_SELL,
+                qty,
+                app.config.get("DEVELOPMENT"),
+            )
+        else:
+            send_message(f"❗ Order for {qty} {symbol} could not be placed as it is less than the minumum order quantity")
 
 def get_all_valid_symbols():
     try:
@@ -108,10 +118,14 @@ def handle_long(symbol: str, prevPosition: Position):
     if not prevPosition == Position.LONG:
         freeUSDT = get_useable_usdt_qty(symbol)
         askPrice = float(get_ticker(symbol)["askPrice"])
-        qty = get_order_qty(symbol, freeUSDT / askPrice)
-        handle_order(
-            symbol, SIDE_BUY, qty, app.config.get("DEVELOPMENT")
-        )
+        qty, isValid = get_order_qty(symbol, freeUSDT / askPrice, askPrice)
+
+        if isValid:
+            handle_order(
+                symbol, SIDE_BUY, qty, app.config.get("DEVELOPMENT")
+            )
+        else:
+            send_message(f"❗ Order for {qty} {symbol} could not be placed as it is less than the minumum order quantity")
 
 
 def handle_order(
