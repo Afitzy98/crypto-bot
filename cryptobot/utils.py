@@ -29,7 +29,8 @@ def update_strategy():
     if is_trading():
         sched.remove_all_jobs()
         add_trade_job(task)
-        send_message("Strategy logic updated")
+    
+    send_message("Strategy logic updated")
 
     
 def exit_trade_positions():
