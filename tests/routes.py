@@ -1,9 +1,9 @@
-import numpy as np
 import unittest
 from unittest import mock
 
-from cryptobot.routes import keep_alive, webhook_endpoint
+import numpy as np
 from cryptobot import app
+from cryptobot.routes import keep_alive, webhook_endpoint
 
 
 class TestRoutes(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestRoutes(unittest.TestCase):
             res = webhook_endpoint()
             self.assertEqual(res, "ERROR.WHILE_HANDLING_REQUEST")
 
-    @mock.patch("cryptobot.utils.handle_request")
+    @mock.patch("cryptobot.webhook.handle_request")
     def test_handle_request_passing(self, mock_handle_request):
         with app.test_request_context(json={"message": ""}):
             res = webhook_endpoint()
