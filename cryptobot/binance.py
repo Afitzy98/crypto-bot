@@ -1,6 +1,5 @@
 import json
 import math
-from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -14,6 +13,7 @@ from .constants import AUTO_REPAY, MARGIN_BUY, NO_SIDE_EFFECT, SYMBOLS
 from .enums import Position
 from .model import add_position, get_position
 from .telegram import send_message
+from .utils import get_current_ts_dt, get_previous_ts_dt
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
@@ -119,7 +119,6 @@ def handle_long(symbol: str, prevPosition: Position):
         freeUSDT = get_useable_usdt_qty(symbol)
         askPrice = float(get_ticker(symbol)["askPrice"])
         qty, isValid = get_order_qty(symbol, freeUSDT / askPrice, askPrice)
-
         if isValid:
             handle_order(
                 symbol, SIDE_BUY, qty, app.config.get("DEVELOPMENT")
@@ -155,9 +154,3 @@ def handle_order(
         send_message(e)
 
 
-def get_current_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-
-
-def get_previous_ts_dt():
-    return datetime.now().replace(microsecond=0, second=0, minute=0, hour=0) - timedelta(days=1)
