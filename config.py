@@ -2,7 +2,6 @@ import os
 
 from settings import APP_SECRET_KEY
 
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -14,7 +13,7 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    DEBUG = False
+    DEBUG = True # ** TURNING ON DEBUG MODE FOR PRODUCTION WHILE WORKING OUT KINKS, REMOVE THIS EVENTUALLY
 
 
 class StagingConfig(Config):

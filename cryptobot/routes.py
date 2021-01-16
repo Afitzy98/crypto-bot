@@ -3,7 +3,7 @@ from settings import TG_BOT_TOKEN
 
 from cryptobot import app
 
-from .utils import handle_request
+from .webhook import handle_request
 
 
 @app.route("/", methods=["GET"])
@@ -17,5 +17,5 @@ def webhook_endpoint():
         req = request.get_json()
         handle_request(req)
         return "ok"
-    except Exception:
+    except Exception as e:
         return f"ERROR.WHILE_HANDLING_REQUEST"

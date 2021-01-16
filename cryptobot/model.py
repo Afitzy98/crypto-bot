@@ -17,6 +17,7 @@ class HourlyPosition(db.Model):
         return f"<Position (time: {self.time} symbol: {self.symbol} position: {self.position}>"
 
 
+
 def get_position(dt, symbol):
     pos = HourlyPosition.query.get((dt, symbol))
 

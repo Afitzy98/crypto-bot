@@ -44,6 +44,7 @@ def add_trade_job(func, **kwargs):
         func,
         "cron",
         hour="0",
+        minute="0",
         second="15",
         name=JobType.TRADE_MANAGER,
         kwargs=kwargs,
