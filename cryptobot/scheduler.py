@@ -40,6 +40,7 @@ def is_trading():
     return len([j for j in sched.get_jobs() if j.name == JobType.TRADE_MANAGER]) > 0
 
 def add_trade_job(func, **kwargs):
+    minute = "1" if app.config.get("DELAY_SCHEDULER", False) else "0" # pragma: no cover
     job = sched.add_job(
         func,
         "cron",
