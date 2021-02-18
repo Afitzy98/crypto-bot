@@ -11,16 +11,17 @@ from cryptobot.model import HourlyPosition, add_position, get_position
 HOURLY_POS = HourlyPosition(time=datetime.now(), symbol="TEST", position=Position.NONE)
 
 
+@mock.patch("requests.post", autospec=True)
 class TestModel(unittest.TestCase):
     @mock.patch("cryptobot.model.HourlyPosition")
-    def test_get_pos(self, mock_get_pos):
+    def test_get_pos(self, mock_get_pos, mock_req_post):
         mock_get_pos.query.get.return_value = HOURLY_POS
         with app.app_context():
             res = get_position(datetime.now(), "")
             self.assertEqual(res, HOURLY_POS)
 
     @mock.patch("cryptobot.model.HourlyPosition")
-    def test_get_pos_that_doesnt_exist(self, mock_get_pos):
+    def test_get_pos_that_doesnt_exist(self, mock_get_pos, mock_req_post):
         mock_get_pos.query.get.return_value = None
         with app.app_context():
             res = get_position(datetime.now(), "")
@@ -29,7 +30,9 @@ class TestModel(unittest.TestCase):
     @mock.patch("cryptobot.db.session.add", side_effect=Exception)
     @mock.patch("cryptobot.db.session.commit")
     @mock.patch("cryptobot.model.HourlyPosition")
-    def test_add_pos_failing(self, mock_get_pos, mock_db_commit, mock_add):
+    def test_add_pos_failing(
+        self, mock_get_pos, mock_db_commit, mock_add, mock_req_post
+    ):
         mock_get_pos.query.get.return_value = None
         with app.app_context():
             add_position(datetime.now(), "", Position.NONE)
@@ -39,7 +42,7 @@ class TestModel(unittest.TestCase):
     @mock.patch("cryptobot.db.session.add")
     @mock.patch("cryptobot.db.session.commit")
     @mock.patch("cryptobot.model.HourlyPosition")
-    def test_add_pos(self, mock_get_pos, mock_db_commit, mock_add):
+    def test_add_pos(self, mock_get_pos, mock_db_commit, mock_add, mock_req_post):
         mock_get_pos.query.get.return_value = None
         with app.app_context():
             add_position(datetime.now(), "", Position.NONE)
@@ -49,7 +52,9 @@ class TestModel(unittest.TestCase):
     @mock.patch("cryptobot.db.session.add")
     @mock.patch("cryptobot.db.session.commit")
     @mock.patch("cryptobot.model.HourlyPosition")
-    def test_add_pos_already_entered(self, mock_get_pos, mock_db_commit, mock_add):
+    def test_add_pos_already_entered(
+        self, mock_get_pos, mock_db_commit, mock_add, mock_req_post
+    ):
         mock_get_pos.query.get.return_value = HOURLY_POS
         with app.app_context():
             add_position(datetime.now(), "", Position.NONE)
