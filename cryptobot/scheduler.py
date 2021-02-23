@@ -30,7 +30,10 @@ sched = BackgroundScheduler(
 
 
 def shutdown():
-    sched.shutdown()
+    try:
+        sched.shutdown()
+    except Exception:
+        print("Scheduler shutdown attempt failed, sheduler is not running.")
 
 
 atexit.register(shutdown)
@@ -39,7 +42,15 @@ atexit.register(shutdown)
 def is_trading():
     return len([j for j in sched.get_jobs() if j.name == JobType.TRADE_MANAGER]) > 0
 
+
+def is_running_analytics():
+    return len([j for j in sched.get_jobs() if j.name == JobType.ANALYTICS_MANAGER]) > 0
+
+
 def add_trade_job(func, **kwargs):
+    minute = (
+        "1" if app.config.get("DELAY_SCHEDULER", False) else "0"
+    )  # pragma: no cover
     job = sched.add_job(
         func,
         "cron",
@@ -47,6 +58,17 @@ def add_trade_job(func, **kwargs):
         minute="0",
         second="15",
         name=JobType.TRADE_MANAGER,
+        kwargs=kwargs,
+    )
+
+
+def add_analytics_job(func, **kwargs):
+    job = sched.add_job(
+        func,
+        "cron",
+        hour="0, 8, 16",
+        minute="0",
+        name=JobType.ANALYTICS_MANAGER,
         kwargs=kwargs,
     )
 
@@ -63,5 +85,3 @@ def get_jobs():
 
 def is_running():
     send_message(f"Scheduler running: {sched.running}")
-
-

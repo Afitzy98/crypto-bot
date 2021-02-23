@@ -1,11 +1,12 @@
+import os
 import unittest
 from unittest import mock
 
-from cryptobot.telegram import set_webhook, send_message
+from cryptobot.telegram import send_message, set_webhook
 
 MESSAGE = "TEST"
 
-
+@mock.patch.dict(os.environ, {"APP_SETTINGS": "config.TestingConfig"})
 class TestTelegram(unittest.TestCase):
     @mock.patch("requests.post", autospec=True, side_effect=Exception)
     def test_set_webhook_failing(self, mock_req_post):

@@ -10,6 +10,7 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = APP_SECRET_KEY
+    DELAY_SCHEDULER = False
 
 
 class ProductionConfig(Config):
@@ -19,13 +20,16 @@ class ProductionConfig(Config):
 class StagingConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
+    DELAY_SCHEDULER = True
 
 
 class DevelopmentConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
+    DELAY_SCHEDULER = True
 
 
 class TestingConfig(Config):
     DEVELOPMENT = True
     TESTING = True
+    DELAY_SCHEDULER = True
