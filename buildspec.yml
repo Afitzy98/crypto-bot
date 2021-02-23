@@ -27,10 +27,8 @@ phases:
    - echo Build completed on `date`
    - echo Pushing the Docker image...
    - docker push $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/cryptobot-$BRANCH_NAME:latest
-   - printf '[{"name":"cryptobot-%s","imageUri":"%s"}]' $BRANCH_NAME $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/cryptobot-$BRANCH_NAME:latest > imagedefinitions.json
-
-artifacts:
- files: imagedefinitions.json
+   - printf '[{"name":"cryptobot-%s","imageUri":"%s"}]' $BRANCH_NAME $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/cryptobot-$BRANCH_NAME:latest
+   - curl -X POST http://54.170.57.111:5000/update/$BRANCH_NAME
 
 reports:
  cobertura-report:
