@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest import mock
 
@@ -6,6 +7,7 @@ from cryptobot import app
 from cryptobot.routes import keep_alive, webhook_endpoint
 
 
+@mock.patch.dict(os.environ, {"APP_SETTINGS": "config.TestingConfig"})
 class TestRoutes(unittest.TestCase):
     def test_keep_alive(self):
         res = keep_alive()
