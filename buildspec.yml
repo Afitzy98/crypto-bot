@@ -20,7 +20,7 @@ phases:
    - echo Image tag - latest
    - echo Branch ame - $BRANCH_NAME
    - echo Image URI - $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/cryptobot-$BRANCH_NAME:latest
-   - docker build -t cryptobot-$BRANCH_NAME:latest --build-arg APP_SECRET_KEY=$APP_SECRET_KEY --build-arg APP_SETTINGS=$APP_SETTINGS --build-arg BINANCE_API_KEY=$BINANCE_API_KEY --build-arg BINANCE_SECRET_KEY=$BINANCE_SECRET_KEY --build-arg TG_BOT_TOKEN=$TG_BOT_TOKEN --build-arg TG_USER_ID=$TG_USER_ID --build-arg WEBHOOK_URL=$WEBHOOK_URL --build-arg DB_URI=$DB_URI
+   - docker build -t cryptobot-$BRANCH_NAME:latest . --build-arg APP_SECRET_KEY=$APP_SECRET_KEY --build-arg APP_SETTINGS=$APP_SETTINGS --build-arg BINANCE_API_KEY=$BINANCE_API_KEY --build-arg BINANCE_SECRET_KEY=$BINANCE_SECRET_KEY --build-arg TG_BOT_TOKEN=$TG_BOT_TOKEN --build-arg TG_USER_ID=$TG_USER_ID --build-arg WEBHOOK_URL=$WEBHOOK_URL --build-arg DB_URI=$DB_URI
    - docker tag cryptobot-$BRANCH_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.eu-west-1.amazonaws.com/cryptobot-$BRANCH_NAME:latest .
  post_build:
   commands:
