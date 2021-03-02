@@ -23,6 +23,7 @@ ENV TG_BOT_TOKEN=${TG_BOT_TOKEN}
 ENV TG_USER_ID=${TG_USER_ID}
 ENV WEBHOOK_URL=${WEBHOOK_URL}
 ENV DB_URI=${DB_URI}
+ENV CODEBUILD_SRC_DIR="/app"
 
 # Install the dependencies
 RUN pip install -r requirements.txt

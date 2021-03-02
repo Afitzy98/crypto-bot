@@ -8,6 +8,8 @@ phases:
    - pip3 install -r requirements.txt
  pre_build:
   commands:
+   - echo Printing current directory contents
+   - ls
    - echo Running test cases ...
    - APP_SETTINGS=config.TestingConfig coverage run -m unittest tests/*
    - echo $APP_SETTINGS

@@ -14,22 +14,26 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    DEBUG = True # ** TURNING ON DEBUG MODE FOR PRODUCTION WHILE WORKING OUT KINKS, REMOVE THIS EVENTUALLY
+    DEBUG = True  # ** TURNING ON DEBUG MODE FOR PRODUCTION WHILE WORKING OUT KINKS, REMOVE THIS EVENTUALLY
+    STAGE = "prod"
 
 
 class StagingConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
     DELAY_SCHEDULER = True
+    STAGE = "staging"
 
 
 class DevelopmentConfig(Config):
     DEVELOPMENT = True
     DEBUG = True
     DELAY_SCHEDULER = True
+    STAGE = "dev"
 
 
 class TestingConfig(Config):
     DEVELOPMENT = True
     TESTING = True
     DELAY_SCHEDULER = True
+    STAGE = "test"
