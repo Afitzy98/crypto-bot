@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime
 from unittest import mock
 
+from cryptobot import app
 from cryptobot.webhook import handle_request
 from settings import TG_USER_ID
 
@@ -24,8 +25,9 @@ class TestUtils(unittest.TestCase):
         mock_req_post.assert_called_once()
 
     def test_handle_invalid_message_request(self, mock_req_post):
-        handle_request(REQ2)
-        mock_req_post.assert_called_once()
+        with app.app_context():
+            handle_request(REQ2)
+            mock_req_post.assert_called_once()
 
     def test_handle_invalid_user_id_request(self, mock_req_post):
         handle_request(REQ3)
