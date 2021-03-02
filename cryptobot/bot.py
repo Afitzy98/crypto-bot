@@ -10,8 +10,15 @@ from .binance import handle_exit_positions, update_equity
 from .constants import HELP_TEXT, LANGUAGE_CODE, PROJECT_ID, SYMBOLS
 from .enums import JobType
 from .model import get_current_equity, get_position
-from .scheduler import (add_analytics_job, add_trade_job, get_jobs, is_running,
-                        is_running_analytics, is_trading, sched)
+from .scheduler import (
+    add_analytics_job,
+    add_trade_job,
+    get_jobs,
+    is_running,
+    is_running_analytics,
+    is_trading,
+    sched,
+)
 from .strategy import task
 from .telegram import send_message
 from .utils import get_current_ts_dt
@@ -95,6 +102,7 @@ def update_strategy():
     if is_trading():
         sched.remove_all_jobs()
         add_trade_job(task)
+        add_analytics_job(update_equity)
 
     send_message("Strategy logic updated")
 
