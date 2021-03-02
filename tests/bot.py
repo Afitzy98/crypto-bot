@@ -92,7 +92,7 @@ class TestUtils(unittest.TestCase):
     ):
         update_strategy()
         mock_get_jobs.assert_called_once()
-        mock_add_job.assert_called_once()
+        mock_add_job.assert_called()
         mock_remove_jobs.assert_called_once()
         mock_req_post.assert_called_once()
 
