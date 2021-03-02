@@ -5,7 +5,9 @@ load_dotenv()
 
 import os
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ".\DevCryptoBot-811d9b05d5d8.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+    os.getenv("CODEBUILD_SRC_DIR") + "\DevCryptoBot-811d9b05d5d8.json"
+)
 
 APP_SETTINGS = os.getenv("APP_SETTINGS")
 APP_SECRET_KEY = os.getenv("APP_SECRET_KEY")
