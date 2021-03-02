@@ -1,24 +1,39 @@
 import json
+import os
 from threading import Thread
+from time import time
 
 from flask import current_app as app
+from google.cloud import dialogflow
 
 from .binance import handle_exit_positions, update_equity
-from .constants import HELP_TEXT, SYMBOLS
+from .constants import HELP_TEXT, LANGUAGE_CODE, PROJECT_ID, SYMBOLS
 from .enums import JobType
 from .model import get_current_equity, get_position
-from .scheduler import (
-    add_analytics_job,
-    add_trade_job,
-    get_jobs,
-    is_running,
-    is_running_analytics,
-    is_trading,
-    sched,
-)
+from .scheduler import (add_analytics_job, add_trade_job, get_jobs, is_running,
+                        is_running_analytics, is_trading, sched)
 from .strategy import task
 from .telegram import send_message
 from .utils import get_current_ts_dt
+
+SESSION_CLIENT = dialogflow.SessionsClient()
+
+
+def chatbot_fallback(text):
+    with app.app_context():
+        session_id = app.config["STAGE"]
+
+        session = SESSION_CLIENT.session_path(PROJECT_ID, str(session_id))
+
+        text_input = dialogflow.TextInput(text=text, language_code=LANGUAGE_CODE)
+
+        query_input = dialogflow.QueryInput(text=text_input)
+
+        response = SESSION_CLIENT.detect_intent(
+            request={"session": session, "query_input": query_input}
+        )
+
+        send_message(response.query_result.fulfillment_text)
 
 
 def display_help():

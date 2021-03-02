@@ -1,6 +1,6 @@
 from settings import TG_USER_ID
 
-from .bot import switcher
+from .bot import chatbot_fallback, switcher
 from .telegram import send_message
 
 
@@ -10,7 +10,7 @@ def handle_request(req: dict):
     if message and message["from"]["id"] == TG_USER_ID:
         switcher.get(
             message["text"].lower(),
-            lambda: send_message(
-                f"Sorry I didn't understand that, you said: {message['text']}"
-            ),
+            lambda: chatbot_fallback(
+                message["text"]
+            ),  # if not command pass input to chatbot to interperet
         )()
