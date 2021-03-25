@@ -1,13 +1,17 @@
-from flask import request
+import json
+from datetime import datetime, timedelta
+
+from flask import render_template, request
 from settings import TG_BOT_TOKEN
 
 from cryptobot import app
 
+from .model import get_equity_history
 from .webhook import handle_request
 
 
 @app.route("/", methods=["GET"])
-def keep_alive():
+def root():
     return "ok"
 
 
@@ -19,3 +23,29 @@ def webhook_endpoint():
         return "ok"
     except Exception as e:
         return f"ERROR.WHILE_HANDLING_REQUEST"
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+    history = get_equity_history()
+    initial_equity = history[0].equity
+    initial_hedges = json.loads(history[0].assets)
+    pnl = []
+    pnl_percent = []
+    equity_division = []
+
+    for r in history:
+        curr_pnl = r.equity - initial_equity
+        pnl.append((r.time, curr_pnl))
+        pnl_percent.append((r.time, (curr_pnl / initial_equity) * 100))
+        hedges = json.loads(r.assets)
+        equity_division.append(
+            (tuple([r.time.isoformat()] + [h["hedge"] for h in hedges]))
+        )
+        
+    return render_template(
+        "index.html",
+        pnl=pnl,
+        pnl_percent=pnl_percent,
+        equity_division=equity_division,
+    )

@@ -4,7 +4,7 @@ from math import sqrt
 import numpy as np
 import pandas as pd
 
-from .binance import get_data, handle_decision
+from .binance import get_data, handle_decision, update_equity
 from .constants import SYMBOLS
 from .enums import PositionType
 from .telegram import send_message
@@ -34,3 +34,4 @@ def task():
             handle_decision(pos, s)
         except Exception as e:
             send_message(e)
+    update_equity()
