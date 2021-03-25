@@ -33,7 +33,7 @@ def shutdown():
     try:
         sched.shutdown()
     except Exception:
-        print("Scheduler shutdown attempt failed, sheduler is not running.")
+        pass
 
 
 atexit.register(shutdown)
@@ -66,7 +66,7 @@ def add_analytics_job(func, **kwargs):
     job = sched.add_job(
         func,
         "cron",
-        hour="0, 8, 16",
+        hour="8, 16",
         minute="0",
         name=JobType.ANALYTICS_MANAGER,
         kwargs=kwargs,

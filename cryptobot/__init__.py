@@ -7,6 +7,8 @@ app.config.from_object(APP_SETTINGS)
 app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+db.create_all()
+db.session.commit()
 
 
 from . import routes  # Import routes

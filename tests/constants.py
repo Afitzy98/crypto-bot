@@ -18,8 +18,10 @@ JOBS = [
 NO_JOBS = []
 
 
-assets = json.dumps([{"asset": "a", "hedge": 0.5}, {"asset": "b", "hedge": 0.5}])
+assets = json.dumps([{"asset": "BTC", "hedge": 0.1}, {"asset": "ETH", "hedge": 0.1}, {"asset": "DOT", "hedge": 0.1}, {"asset": "ADA", "hedge": 0.1}, {"asset": "XRP", "hedge": 0.1}, {"asset": "USDT", "hedge": 0.5}])
 
 ts = get_previous_ts_dt()
 
 EQUITY_RECORD = EquityRecord(equity=100.0, assets=assets, time=ts)
+
+EQUITY_HISTORY = [EQUITY_RECORD for i in range(20)]

@@ -9,7 +9,7 @@ phases:
  pre_build:
   commands:
    - echo Running test cases ...
-   - APP_SETTINGS=config.TestingConfig coverage run -m unittest tests/*
+   - APP_SETTINGS=config.TestingConfig coverage run -m unittest tests/*.py
    - echo $APP_SETTINGS
    - coverage xml --omit=tests/*
    - echo Logging in to Amazon ECR...

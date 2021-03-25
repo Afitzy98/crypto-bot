@@ -65,7 +65,3 @@ def add_equity_record(dt, equity, assets):
 
     except Exception as e:
         send_message(e)
-
-
-db.create_all()
-db.session.commit()
