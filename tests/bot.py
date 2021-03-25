@@ -74,10 +74,24 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("apscheduler.schedulers.background.BackgroundScheduler.remove_all_jobs")
     @mock.patch("cryptobot.model.Position")
-    def test_exit_positions(self, mock_get_pos, mock_remove_jobs, mock_req_post):
+    @mock.patch("cryptobot.db.session.add")
+    @mock.patch("cryptobot.db.session.commit")
+    @mock.patch("cryptobot.db.session.delete")
+    def test_exit_positions(
+        self,
+        mock_db_delete,
+        mock_db_commit,
+        mock_db_add,
+        mock_get_pos,
+        mock_remove_jobs,
+        mock_req_post,
+    ):
         mock_get_pos.query.get.return_value = PREVIOUS_NONE
         with app.app_context():
             exit_trade_positions()
+            mock_db_delete.assert_called()
+            mock_db_add.assert_called()
+            mock_db_commit.assert_called()
             mock_req_post.assert_called_once()
             mock_remove_jobs.assert_called_once()
 

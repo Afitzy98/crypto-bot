@@ -21,5 +21,5 @@ def send_message(message: str):
     params = f"?chat_id={TG_USER_ID}&text={message}"
     try:
         requests.post(reqUrl + params)
-    except:
+    except Exception as e:
         print("ERROR.FAILED_TO_SEND_MESSAGE")

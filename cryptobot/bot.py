@@ -8,8 +8,8 @@ from google.cloud import dialogflow
 
 from .binance import handle_exit_positions, update_equity
 from .constants import HELP_TEXT, LANGUAGE_CODE, PROJECT_ID, SYMBOLS
-from .enums import JobType
-from .model import get_current_equity, get_position
+from .enums import JobType, PositionType
+from .model import add_position, get_current_equity, get_position
 from .scheduler import (
     add_analytics_job,
     add_trade_job,
@@ -56,6 +56,7 @@ def exit_trade_positions():
     out = "🛑 Stopped trading with: \n"
     for s in SYMBOLS:
         handle_exit_positions(s, get_position(get_current_ts_dt(), s).position)
+        add_position(get_current_ts_dt(), s, PositionType.NONE)
         out += f"\u2022 {s}\n"
     send_message(out)
     sched.remove_all_jobs()
