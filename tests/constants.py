@@ -13,7 +13,6 @@ class MockJob:
 
 JOBS = [
     MockJob(name=JobType.TRADE_MANAGER, id=1),
-    MockJob(name=JobType.ANALYTICS_MANAGER, id=2),
 ]
 NO_JOBS = []
 
