@@ -26,7 +26,7 @@ def apply_strategy(data):
 
 
 def task():
-    period = "1 month ago"
+    period = "1 week ago"
     for s in SYMBOLS:
         try:
             d = get_data(period, s)
