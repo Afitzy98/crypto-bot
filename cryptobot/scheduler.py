@@ -43,10 +43,6 @@ def is_trading():
     return len([j for j in sched.get_jobs() if j.name == JobType.TRADE_MANAGER]) > 0
 
 
-def is_running_analytics():
-    return len([j for j in sched.get_jobs() if j.name == JobType.ANALYTICS_MANAGER]) > 0
-
-
 def add_trade_job(func, **kwargs):
     minute = (
         "1" if app.config.get("DELAY_SCHEDULER", False) else "0"
@@ -54,21 +50,10 @@ def add_trade_job(func, **kwargs):
     job = sched.add_job(
         func,
         "cron",
-        hour="0",
+        hour="0, 4, 8, 16, 20",
         minute="0",
         second="15",
         name=JobType.TRADE_MANAGER,
-        kwargs=kwargs,
-    )
-
-
-def add_analytics_job(func, **kwargs):
-    job = sched.add_job(
-        func,
-        "cron",
-        hour="8, 16",
-        minute="0",
-        name=JobType.ANALYTICS_MANAGER,
         kwargs=kwargs,
     )
 

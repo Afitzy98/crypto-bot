@@ -3,13 +3,7 @@ import unittest
 from datetime import datetime
 from unittest import mock
 
-from cryptobot.scheduler import (
-    add_trade_job,
-    get_jobs,
-    is_running,
-    is_running_analytics,
-    shutdown,
-)
+from cryptobot.scheduler import add_trade_job, get_jobs, is_running, shutdown
 
 from .constants import JOBS, NO_JOBS
 
@@ -60,15 +54,6 @@ class TestScheduler(unittest.TestCase):
     def test_shutdown_failing(self, mock_shutdown, mock_req_post):
         shutdown()
         mock_shutdown.assert_called_once()
-
-    @mock.patch(
-        "apscheduler.schedulers.background.BackgroundScheduler.get_jobs",
-        return_value=JOBS,
-    )
-    def test_is_running_analytics(self, mock_get_jobs, mock_req_post):
-        res = is_running_analytics()
-        mock_get_jobs.assert_called_once()
-        self.assertEqual(True, res)
 
 
 if __name__ == "__main__":

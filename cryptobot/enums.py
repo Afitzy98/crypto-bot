@@ -10,4 +10,3 @@ class PositionType(str, Enum):
 class JobType(str, Enum):
     TRADE_MANAGER = ("TradeManager",)
     PORTFOLIO_MANAGER = "PortfolioManager"
-    ANALYTICS_MANAGER = "AnalyticsManager"
