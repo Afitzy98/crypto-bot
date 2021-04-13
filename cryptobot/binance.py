@@ -21,7 +21,7 @@ client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 def get_data(period: str, symbol: str):
     try:
         data = np.array(
-            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, period)
+            client.get_historical_klines(symbol, Client.KLINE_INTERVAL_4HOUR, period)
         ).astype(float)
 
         return pd.DataFrame(
