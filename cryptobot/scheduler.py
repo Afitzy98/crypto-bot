@@ -50,7 +50,7 @@ def add_trade_job(func, **kwargs):
     job = sched.add_job(
         func,
         "cron",
-        hour="0, 4, 8, 16, 20",
+        hour="0, 4, 8, 12, 16, 20",
         minute="0",
         second="15",
         name=JobType.TRADE_MANAGER,
