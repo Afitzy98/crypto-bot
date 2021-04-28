@@ -1,12 +1,12 @@
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from flask import render_template, request
 from settings import TG_BOT_TOKEN
 
 from cryptobot import app
 
-from .model import get_equity_history
+from .model import get_equity_history_within_time
 from .webhook import handle_request
 
 
@@ -27,7 +27,17 @@ def webhook_endpoint():
 
 @app.route("/stats", methods=["GET"])
 def stats():
-    history = get_equity_history()
+    frm = request.args.get("from")
+    to = request.args.get("to")
+    if frm is not None:
+        frm = datetime.strptime(frm, "%d/%m/%y").date()
+
+    if to is not None:
+        to = datetime.strptime(to, "%d/%m/%y").date()
+    else:
+        to = date.today()
+
+    history = get_equity_history_within_time(frm, to)
     initial_equity = history[0].equity
     initial_hedges = json.loads(history[0].assets)
     pnl = []
@@ -42,7 +52,7 @@ def stats():
         equity_division.append(
             (tuple([r.time.isoformat()] + [h["hedge"] for h in hedges]))
         )
-        
+
     return render_template(
         "index.html",
         pnl=pnl,
