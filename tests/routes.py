@@ -26,10 +26,10 @@ class TestRoutes(unittest.TestCase):
             res = webhook_endpoint()
             self.assertEqual(res, "ok")
 
-    @mock.patch("cryptobot.model.EquityRecord")
+    @mock.patch("cryptobot.model.EquityRecord.query.filter")
     def test_get_stats(self, mock_eq_record):
         with app.test_request_context():
-            mock_eq_record.query.all.return_value = EQUITY_HISTORY
+            mock_eq_record.return_value = EQUITY_HISTORY
             stats()
 
 

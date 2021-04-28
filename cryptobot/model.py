@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from cryptobot import db
 
@@ -41,6 +41,15 @@ def get_current_equity():
 
 def get_equity_history():
     return EquityRecord.query.all()
+
+
+def get_equity_history_within_time(frm, to):
+    if frm is not None:
+        return EquityRecord.query.filter(EquityRecord.time >= frm).filter(
+            EquityRecord.time <= to
+        )
+
+    return EquityRecord.query.filter(EquityRecord.time <= to)
 
 
 def add_position(dt, symbol, position):
