@@ -61,6 +61,7 @@ def add_position(dt, symbol, position):
         db.session.commit()
 
     except Exception as e:
+        db.session.rollback()
         send_message(e)
 
 
@@ -73,4 +74,5 @@ def add_equity_record(dt, equity, assets):
         db.session.commit()
 
     except Exception as e:
+        db.session.rollback()
         send_message(e)
