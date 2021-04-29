@@ -85,6 +85,7 @@ def start_trading():
 def stop_trading():
     if is_trading():
         Thread(target=exit_trade_positions).start()
+        return 
     else:
         get_jobs()
 

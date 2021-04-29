@@ -14,6 +14,7 @@ from cryptobot.bot import (
 )
 from cryptobot.enums import PositionType
 from cryptobot.model import Position
+from cryptobot.strategy import task
 from settings import TG_USER_ID
 
 from .constants import EQUITY_RECORD, JOBS, NO_JOBS
@@ -29,9 +30,15 @@ class TestUtils(unittest.TestCase):
         return_value=NO_JOBS,
     )
     @mock.patch("threading.Thread.start", autospec=True)
-    def test_start_trading(self, mock_thread, mock_get_jobs, mock_req_post):
+    @mock.patch(
+        "apscheduler.schedulers.background.BackgroundScheduler.add_job", autospec=True
+    )
+    def test_start_trading(
+        self, mock_add_job, mock_thread, mock_get_jobs, mock_req_post
+    ):
         start_trading()
         mock_get_jobs.assert_called()
+        mock_add_job.assert_called_once()
         mock_thread.assert_called_once()
         mock_req_post.assert_not_called()
 
