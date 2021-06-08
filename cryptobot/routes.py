@@ -39,7 +39,6 @@ def stats():
 
     history = get_equity_history_within_time(frm, to)
     initial_equity = history[0].equity
-    initial_hedges = json.loads(history[0].assets)
     pnl = []
     pnl_percent = []
     equity_division = []
@@ -52,6 +51,10 @@ def stats():
         equity_division.append(
             (tuple([r.time.isoformat()] + [h["hedge"] for h in hedges]))
         )
+
+    pnl.sort(key=lambda x: x[0])
+    pnl_percent.sort(key=lambda x: x[0])
+    equity_division.sort(key=lambda x: x[0])
 
     return render_template(
         "index.html",
